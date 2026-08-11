@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 .claude/
 
-# Large/raw data — not suitable for git (see README for Kaggle source)
-data/raw/
-data/processed/
+# Large raw data — exceeds GitHub's 100MB file limit
+data/raw/orders.csv
+data/raw/order_products__prior.csv
+data/processed/reorderiq.duckdb
