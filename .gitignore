@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# Large/raw data — not suitable for git (see README for Kaggle source)
+data/raw/
+data/processed/

@@ -1,0 +1,32 @@
+{
+  "n_rows": 8474661,
+  "n_users": 131209,
+  "val_users": 13120,
+  "positive_rate": 0.09780025419305857,
+  "auc": 0.8308656298717693,
+  "threshold": 0.18000000000000002,
+  "mean_per_order_f1": 0.37057191941305156,
+  "pointwise_f1": 0.4269970323442662,
+  "kaggle_public_benchmark_range": [
+    0.38,
+    0.4
+  ],
+  "features": [
+    "up_order_count",
+    "up_avg_cart_position",
+    "up_reorder_rate",
+    "up_order_rate",
+    "up_orders_since_last",
+    "user_total_orders",
+    "user_avg_days_between_orders",
+    "user_avg_basket_size",
+    "user_reorder_ratio",
+    "user_distinct_products",
+    "product_total_orders",
+    "product_reorder_rate",
+    "product_avg_cart_position",
+    "product_distinct_users",
+    "department_id",
+    "aisle_id"
+  ]
+}

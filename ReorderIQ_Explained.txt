@@ -1,0 +1,760 @@
+================================================================================
+REORDERIQ - A MULTI-NODE INVENTORY CONTROL TOWER ON INSTACART DATA
+Complete explanation: concepts, methodology, and end-to-end flow
+================================================================================
+
+This document explains the entire ReorderIQ project in plain language - what
+it is, why each piece exists, the concepts behind each layer, and the exact
+order things run in and why. Read top to bottom for the full story, or jump
+to a section using the headers below.
+
+CONTENTS
+--------
+ 1. What this project is, in one paragraph
+ 2. The core problem: what Instacart's data does and doesn't give you
+ 3. The dataset, explained
+ 4. Concept: Reorder prediction (the demand-sensing model)
+ 5. Concept: Synthetic store clustering (building the missing network)
+ 6. Concept: Hierarchical demand forecasting and reconciliation
+ 7. Concept: MEIO - safety stock, reorder points, and risk pooling
+ 8. Concept: Market basket / association rule mining
+ 9. Concept: The control tower (exception detection)
+10. The full end-to-end flow, step by step
+11. Where every file lives and what it does
+12. Results summary (all numbers in one place)
+13. What's real vs. simulated (read this before trusting any number)
+14. How to reproduce this yourself
+15. Glossary of terms used throughout
+
+
+================================================================================
+1. WHAT THIS PROJECT IS, IN ONE PARAGRAPH
+================================================================================
+
+ReorderIQ is a simulated "inventory control tower" - the kind of system a
+grocery chain's operations team would use to answer "which stores are about
+to run short on which products, and what should we do about it" - built on
+top of the real Instacart Market Basket dataset (3.42 million real grocery
+orders). Instacart's data has no stores, warehouses, or stock levels in it,
+so the project is split cleanly into two halves: a demand layer built
+entirely on real transactions (a machine learning model that predicts what
+people will reorder, and market-basket rules about what gets bought
+together), and a network layer that had to be invented from scratch (18
+simulated "stores" clustered out of real shoppers, an inventory math layer on
+top of them, and an exception-flagging system that ties it all together).
+Every output is labeled as one or the other, because pretending simulated
+numbers are real is the single most common way these portfolio projects lose
+credibility in an interview.
+
+
+================================================================================
+2. THE CORE PROBLEM: WHAT INSTACART'S DATA DOES AND DOESN'T GIVE YOU
+================================================================================
+
+Instacart's public dataset (originally released for a Kaggle competition)
+records real shopping behavior: which products real users bought, in what
+order, in which orders, and how many days passed between orders. This is
+genuinely rich data for demand modeling.
+
+What it does NOT contain:
+  - Any store, location, or warehouse identifier. Every order just belongs to
+    a user - there's no sense of "this order happened at Store #4."
+  - Any real calendar dates. You only get the number of days since a user's
+    previous order (a gap), never an actual date.
+  - Any stock levels, inventory counts, or supplier/lead-time information.
+  - A usable held-out test set. Kaggle split each user's most recent order
+    into "train" (labels visible) or "test" (labels hidden forever, for
+    leaderboard scoring only) - the "test" portion is permanently unusable
+    for anyone outside the original competition.
+
+An "inventory control tower" is fundamentally about stores, warehouses, and
+stock levels - none of which exist here. So this project does the honest
+thing: it builds those missing pieces on top of the real data, as clearly
+labeled simulations, rather than either (a) faking a slicker dataset or (b)
+pretending the missing pieces don't matter. Section 13 is the full ledger of
+which numbers in this project are real and which are constructed.
+
+
+================================================================================
+3. THE DATASET, EXPLAINED
+================================================================================
+
+Six CSV files, all from the Instacart Market Basket Analysis Kaggle
+competition:
+
+  orders.csv (3,421,083 rows)
+    One row per order: which user placed it, whether it's part of that
+    user's "prior" history or their held-out "train"/"test" order, what
+    number order this was for that user (order_number), the day of week and
+    hour it was placed, and days_since_prior_order (the gap since their last
+    order - blank for a user's very first order).
+
+  order_products__prior.csv + order_products__train.csv (33,819,106 rows
+  combined once joined to orders)
+    One row per (order, product): which products were in that order, what
+    position they were added to the cart in, and whether that product counts
+    as a "reorder" (the user had bought it before) or a first-time purchase.
+
+  products.csv (49,688 rows), aisles.csv (134 rows), departments.csv (21 rows)
+    The product catalog and its two-level category taxonomy (department is
+    the broad category like "produce" or "dairy eggs"; aisle is more
+    specific, like "packaged vegetables fruits").
+
+  206,209 distinct users appear across the data.
+
+Every downstream number in this project traces back to these six files and
+nothing else - no external data was added.
+
+
+================================================================================
+4. CONCEPT: REORDER PREDICTION (THE DEMAND-SENSING MODEL)
+================================================================================
+
+WHAT IT PREDICTS
+  For every user, and for every product that user has bought before, predict
+  whether that product will appear in the user's NEXT order. This is
+  deliberately scoped as a "reorder" model, not a general purchase-prediction
+  model - it only ever considers products a user has already bought at least
+  once, which is exactly how Kaggle's own competition was scored and keeps
+  the whole exercise honest (you can't reasonably predict someone will buy
+  something you've never seen them show interest in).
+
+WHY IT MATTERS TO THE REST OF THE PROJECT
+  This model is the "Demand Sensing" layer - the real, forward-looking signal
+  that the rest of the system (store demand rollups, safety stock, and later
+  the control tower's exception logic) is built on top of.
+
+HOW IT WORKS
+  For every (user, product) pair the user has bought before, 16 features are
+  computed using ONLY that user's order history up to (but not including)
+  their final held-out order:
+    - User features: how many orders they've placed, their average basket
+      size, how many days typically pass between their orders, their overall
+      reorder ratio, how many distinct products they've ever bought.
+    - Product features: how often the product is ordered overall, its
+      overall reorder rate, its typical position in the cart.
+    - User x Product interaction features (the strongest signal): how many
+      times this specific user bought this specific product, how recently,
+      what fraction of their orders included it, and their reorder rate for
+      it specifically.
+  These features feed a gradient-boosted decision tree classifier (scikit-
+  learn's HistGradientBoostingClassifier - architecturally the same family of
+  algorithm as the more famous LightGBM/XGBoost, swapped in because this
+  build machine has no Homebrew/libomp, which LightGBM's compiled library
+  needs to load).
+
+HOW IT'S EVALUATED (AND WHY THAT'S HARDER THAN IT SOUNDS)
+  Kaggle's real competition metric isn't a simple accuracy score - it's mean
+  F1 PER ORDER. For every held-out order, you have to predict a whole SET of
+  products (which ones will reappear), and you're scored on how well that
+  predicted set matches the true set, then averaged across all orders. This
+  is harder than scoring individual predictions because it requires picking a
+  probability cutoff (above what probability do you say "yes, they'll
+  reorder this") that works well across an entire order's worth of products
+  at once, not just one row at a time.
+  This project tunes a single global cutoff (0.18) on a held-out slice of
+  USERS (not rows) - 13,120 users set aside entirely, so their orders were
+  never seen during training - and evaluates mean per-order F1 on them. This
+  is the standard simplified version of what Kaggle's top solutions do (they
+  use a slightly more complex per-order-optimal cutoff for a small extra
+  gain).
+
+  LEAKAGE CHECK (important): the split is done by USER, not by row. If you
+  split by row instead, some of a user's other (user, product) pairs could
+  leak into the training set while their held-out order's rows go to
+  validation - the model could partially "learn" that user's specific
+  patterns from the training side. Splitting by user means the validation
+  users are entirely unseen.
+
+RESULT
+  Mean per-order F1: 0.3706, against a Kaggle public-leaderboard range of
+  0.38-0.40 - reached with only 16 hand-built features and no hyperparameter
+  tuning. Validation AUC: 0.831.
+
+
+================================================================================
+5. CONCEPT: SYNTHETIC STORE CLUSTERING (BUILDING THE MISSING NETWORK)
+================================================================================
+
+WHY THIS EXISTS
+  As covered in Section 2, Instacart has no store dimension at all. To build
+  anything resembling a "network" of stores that could each run short on
+  different products, one has to be invented. The key design principle: the
+  clusters must be built from real behavioral signal (not random assignment),
+  and their validity as distinct "stores" must be checked statistically, not
+  just assumed.
+
+HOW IT'S BUILT
+  Every one of the 206,209 users gets a profile:
+    - Their department purchase-share: out of everything they've ever
+      bought, what fraction went to produce, what fraction to dairy, snacks,
+      beverages, etc. (21 numbers per user, one per department, summing to
+      100%). This is a decent proxy for "what kind of shopper is this" -
+      someone who's 40% produce shops very differently from someone who's
+      40% snacks.
+    - Shopping cadence: how many orders they've placed, their average days
+      between orders, their typical day-of-week and hour, and their average
+      basket size.
+  These profiles are standardized (put on comparable scales) and clustered
+  using K-means, a standard unsupervised clustering algorithm that groups
+  similar profiles together into a fixed number of groups. Each resulting
+  cluster becomes one "synthetic store" - the users in it are the shoppers
+  that store notionally serves.
+
+CHOOSING HOW MANY STORES (K)
+  K-means requires you to pick the number of clusters up front. Four
+  candidate counts (12, 15, 18, 20) were compared using silhouette score (a
+  measure of how well-separated the clusters are), and 18 was chosen as a
+  reasonable middle ground between having enough network granularity to be
+  interesting and keeping each store's sample size large enough to be
+  statistically meaningful.
+
+VALIDATING THE CLUSTERS ACTUALLY MEAN SOMETHING
+  This is the step that separates "defensible simulation" from "made-up
+  numbers." Two checks were run:
+    - Silhouette score: came out low (0.05-0.08). This is EXPECTED and
+      stated openly - behavioral/purchase-share clustering doesn't produce
+      the tight, well-separated geometric clusters that, say, clustering
+      people by physical location would. A low silhouette score alone would
+      be a red flag if it were the only check.
+    - Kruskal-Wallis test (a statistical test for whether multiple groups
+      have different distributions) run independently for each of the 21
+      departments' purchase share, comparing all 18 stores against each
+      other. Result: 21 out of 21 departments differ significantly across
+      the 18 stores (p < 0.01 for every single one). A "pseudo-F statistic"
+      (comparing between-cluster variance to within-cluster variance) of
+      9,397 confirms this isn't a marginal effect.
+  Conclusion: even though the clusters aren't geometrically tight, they are
+  statistically and meaningfully distinct in what departments their shoppers
+  favor - which is exactly the property a "store" needs to have for
+  downstream inventory logic to make sense. Store sizes end up ranging from
+  798 to 35,588 users - some imbalance is expected and fine, since nothing
+  forced equal-sized clusters.
+
+
+================================================================================
+6. CONCEPT: HIERARCHICAL DEMAND FORECASTING AND RECONCILIATION
+================================================================================
+
+THE MISSING-CALENDAR PROBLEM
+  To forecast "next week's demand" for a store-product, you need a notion of
+  weeks. Instacart gives no real dates - only days_since_prior_order, the gap
+  before each order. This project reconstructs a RELATIVE timeline: for each
+  user, starting their very first order at day 0, it cumulatively adds up
+  each subsequent gap to get a running day count, then buckets that into
+  7-day weeks. This recovers each user's own order spacing accurately, but
+  does NOT align users to a shared calendar - "week 3" for one user is not
+  the same real-world week as "week 3" for another. That's fine for this
+  project's purpose, because forecasts are built per store-product using that
+  store's own demand history, not by comparing calendar weeks across stores.
+
+THE HIERARCHY
+  Once every order-product row has a store (from the clustering in Section
+  5) and a relative week, demand can be counted at the SKU level (product),
+  rolled up to the department level (treated as a "category DC" -
+  distribution center - serving the whole network for that category), rolled
+  up further to the store level, and finally to the whole network. This
+  four-level hierarchy - SKU -> department-DC -> store -> network - is what
+  lets later layers ask questions at whichever level makes sense (a single
+  product at one store, or a whole category's demand network-wide).
+
+  For tractability, this hierarchy is built over the top 3,000 products by
+  order volume (out of 49,688 total), which still covers 73% of all
+  order-product volume - a reasonable trade of completeness for a
+  computation that stays fast.
+
+FORECASTING NEXT WEEK'S DEMAND
+  For each (store, product) combination, a weighted moving average over its
+  last 6 observed weeks of demand (more recent weeks weighted more heavily)
+  produces a forecast for the next week. This is a deliberately simple,
+  transparent forecasting method - the point of this project isn't to build
+  the most sophisticated time-series model, it's to have a believable demand
+  number to feed the inventory math in Section 7.
+
+RECONCILIATION (WHY THE NUMBERS ADD UP)
+  "Bottom-up reconciliation" means: forecast at the most granular level
+  (store x product), then simply SUM upward to get store totals, department
+  totals, and the network total. Because it's addition, the totals are
+  guaranteed to match exactly at every level - there's no risk of a
+  department's total forecast disagreeing with the sum of its stores'
+  forecasts, which is a real problem in more complex ("top-down" or
+  "middle-out") reconciliation approaches. This was verified explicitly: the
+  SKU-level total, the sum via store rollup, and the sum via department
+  rollup all matched to the last decimal.
+
+
+================================================================================
+7. CONCEPT: MEIO - SAFETY STOCK, REORDER POINTS, AND RISK POOLING
+================================================================================
+
+WHAT MEIO MEANS
+  MEIO = Multi-Echelon Inventory Optimization. "Multi-echelon" means there's
+  more than one tier in the supply chain being optimized together (here:
+  stores, and the department-level DC above them), rather than optimizing
+  each location in isolation. The "optimization" is about deciding how much
+  buffer stock (safety stock) to hold at each tier and where to hold it, to
+  hit a target service level as cheaply as possible in total inventory.
+
+THE BASIC INVENTORY MATH (PLAIN LANGUAGE)
+  - Safety stock is extra inventory held beyond expected demand, to absorb
+    the fact that real demand varies week to week. The more demand varies
+    (higher standard deviation) and the longer it takes to get more stock
+    (lead time), the more safety stock you need.
+  - Reorder point (ROP) is the inventory level at which you should trigger a
+    new order - it's roughly "how much you'll sell during the time it takes
+    to get more stock" plus the safety stock buffer.
+  - Service level is the target probability of NOT running out before the
+    next delivery arrives. This project targets 95%, a common retail
+    default, which corresponds to a statistical "z-score" of about 1.645 (a
+    standard number from the normal distribution used to size the buffer).
+
+THE FORMULA, IN THE FORM ACTUALLY USED
+    safety_stock = z * demand_std_dev * sqrt(lead_time / period_length)
+    reorder_point = average_daily_demand * lead_time + safety_stock
+
+THE TWO ECHELONS HERE
+  - Store level (downstream): each store holds its own safety stock, sized
+    against ITS OWN demand variability for that product, with a fast 1-day
+    replenishment lead time from the DC (a stated assumption - Instacart
+    provides no real lead-time data).
+  - Department-DC level (upstream): rather than just adding up every store's
+    safety stock, the DC's buffer is sized against the POOLED demand
+    variability across all the stores it serves, with a slower 3-day
+    replenishment lead time from the supplier (also a stated assumption).
+
+WHY POOLING SAVES INVENTORY (THE ACTUAL INSIGHT)
+  This is the classic "risk pooling" principle from supply chain theory:
+  when you combine several independent, variable demand streams into one
+  pool, the COMBINED variability (as a percentage of the combined average) is
+  smaller than any single stream's variability on its own. Concretely: if
+  each of 10 stores has some random ups and downs in demand, some of those
+  swings cancel each other out when you look at all 10 together, so the
+  DC serving all 10 doesn't need nearly as much safety stock as the sum of
+  what each store would need if buffering completely on its own. This
+  project computes both numbers explicitly to make the benefit visible: if
+  every store held its own full safety stock independently, the network
+  would need 190,832 units. Pooling that variability at the DC echelon
+  instead needs only 133,325 units - a 30.1% reduction in total network
+  safety stock, for the same 95% service level target.
+
+  IMPORTANT CAVEAT (stated honestly): this calculation assumes each store's
+  demand is statistically independent of the others. In the real world,
+  regional demand is often correlated (a heat wave affects many nearby
+  stores at once), which would shrink this 30.1% benefit somewhat. It's
+  still a directionally correct and standard textbook argument - just not a
+  number to treat as precise to the decimal.
+
+
+================================================================================
+8. CONCEPT: MARKET BASKET / ASSOCIATION RULE MINING
+================================================================================
+
+WHAT IT ANSWERS
+  Two related questions: "what products tend to get bought together"
+  (useful for bundling, recommendations, and - critically for this project -
+  figuring out ripple effects of a stockout), and "what products substitute
+  for each other" (useful for recommending an alternative when the primary
+  item is running short).
+
+KEY TERMS
+  - Support: how often a pair of products appears together, as a fraction of
+    all orders.
+  - Confidence: given that product A was bought, what fraction of the time
+    was product B also bought.
+  - Lift: how much more (or less) often A and B appear together than you'd
+    expect if they were bought completely independently of each other. Lift
+    of 1 means no relationship; lift much greater than 1 means a strong
+    positive association (complements); lift well below 1 means the two are
+    bought together LESS than chance would predict (often substitutes -
+    people buy one OR the other, not both).
+
+TWO METHODS USED HERE, DELIBERATELY DIFFERENT IN SCOPE
+  1. Exact pairwise co-occurrence, computed via a direct database self-join
+     across the FULL 33.8-million-row order history (top 2,000 products by
+     volume, to keep the computation bounded) - 415,479 candidate pairs
+     scored with exact, non-sampled numbers. This is the primary,
+     trustworthy output:
+       - "Frequently bought together" (complements): pairs with lift > 1.5
+         and reasonable confidence. Top example: Coconut Chocolate Bar and
+         Chocolate Sea Salt (bar), lift 329x.
+       - "Substitute candidates": pairs from the SAME AISLE (so genuinely
+         comparable products) with lift below 0.8 - shoppers picking one
+         instead of the other. Example: Bag of Organic Bananas and Banana,
+         lift 0.02x (people overwhelmingly buy one or the other, essentially
+         never both in the same order, which makes complete intuitive
+         sense). 700 such substitute pairs were found.
+  2. A genuine FP-Growth run (a well-known frequent-itemset-mining
+     algorithm, via the mlxtend library) on a 106,310-order SAMPLE of the
+     top 250 products. FP-Growth can find patterns involving THREE OR MORE
+     items at once, which the pairwise method above can't see. Sampling here
+     is a hard memory-tractability requirement - encoding the full 3.42
+     million orders x 49,688 products as the one-hot matrix FP-Growth needs
+     is not feasible on this machine - so this method is explicitly
+     secondary and only used for the "beyond pairs" multi-item view, never
+     for the primary substitute/complement logic above. Result: 1,475
+     frequent itemsets at a 0.3% minimum-support threshold.
+
+
+================================================================================
+9. CONCEPT: THE CONTROL TOWER (EXCEPTION DETECTION)
+================================================================================
+
+WHY IT'S NOT AN LLM/AI-AGENT SYSTEM
+  Every decision the control tower makes - is this store-product combination
+  an exception worth flagging, which other store could send inventory to
+  cover it, which product could substitute for it - is fully computable
+  directly from the data with clear, deterministic logic. There's no
+  ambiguous judgment call here that an LLM would improve on, so this layer
+  is built as a plain rule-based Python orchestrator instead of an AI agent
+  framework (like LangGraph). This keeps it fast, free to run, fully
+  testable, and with no dependency on an API key. A thin LLM layer could
+  sit on top purely to turn the output into natural-language summaries for a
+  human reader, but that would be a presentation layer, not a decision-maker
+  - noted as a possible future addition, not something the system needs.
+
+THE HARD PART: DEFINING "EXCEPTION" SO IT MEANS SOMETHING
+  The first, naive idea was: flag a store-product if the forecasted demand
+  (Section 6) is unusually high compared to that same store-product's own
+  historical average and standard deviation. This turned out to be a dead
+  end - the forecast IS built from that same historical average (it's a
+  moving average of recent weeks), so comparing it back against its own
+  history rarely disagrees with itself. That approach flagged essentially
+  zero real exceptions.
+
+  The fix: compare two INDEPENDENT estimates of demand instead of comparing
+  one number to itself.
+    - Estimate 1: the historical trailing-average baseline from Section 6
+      (what MEIO's safety stock was actually sized against).
+    - Estimate 2: the trained reorder-prediction model from Section 4,
+      applied fresh to every user in a store and summed up - a genuinely
+      forward-looking, independently-derived demand signal based on real
+      behavioral features (recency, frequency, cart position), not on the
+      trailing average at all.
+  These two numbers live on different scales (one is "expected units per
+  week," the other is closer to "expected units in a user's next order
+  cycle"), so instead of comparing raw values, each store-product's SHARE of
+  its store's total demand is compared under each method. This cancels out
+  the scale mismatch and turns the question into something operationally
+  meaningful: is the ML model predicting a meaningfully different demand MIX
+  than the trailing average would suggest?
+
+  A second lesson learned the hard way: the very first version of this share
+  comparison used raw ratio thresholds and flagged 58.6% of all store-product
+  positions as "exceptions" - which is not a signal, that's just noise
+  dressed up as insight (if the majority of everything is an "exception,"
+  the word has stopped meaning anything). Tightening the definition (a
+  1.5x/0.67x share-ratio threshold, plus a minimum absolute-volume floor to
+  ignore tiny low-traffic SKUs where noise dominates) brought the exception
+  rate down to a much more credible 4.9% - a rate that a human operations
+  team could actually act on.
+
+WHAT HAPPENS ONCE SOMETHING IS FLAGGED
+  For each flagged exception:
+    - If it looks like understock risk (ML demand share meaningfully above
+      the historical baseline share): the system searches every OTHER store
+      carrying the same product for one with spare capacity (its own
+      forecasted demand well below what it's stocked for) and recommends it
+      as a transfer donor, picking whichever has the largest surplus.
+    - Regardless of direction, the system looks up the substitution rules
+      from Section 8 for that product and surfaces the closest substitute
+      (same aisle, lowest lift) as a fallback recommendation.
+  Final result: 2,397 exceptions out of 49,256 store-SKU positions (4.9%),
+  of which 1,079 have a same-network transfer donor available and 821 have a
+  substitute product recommendation attached.
+
+
+================================================================================
+10. THE FULL END-TO-END FLOW, STEP BY STEP
+================================================================================
+
+This is the exact order the pipeline runs in (see run_pipeline.sh), and what
+each step consumes and produces. Everything reads from and writes to a
+single DuckDB database file at data/processed/reorderiq.duckdb, so each step
+builds directly on tables the previous step created.
+
+  STEP 1 - Ingest (src/reorderiq/ingest/build_db.py)
+    Reads the six raw CSVs from data/raw/ and loads them into DuckDB as
+    typed tables: orders, order_products, products, aisles, departments, and
+    a pre-joined fact_order_products table (33.8M rows) that combines all of
+    them for fast downstream querying. Indexes are built on the columns
+    everything else joins on.
+
+  STEP 2 - Build reorder features (src/reorderiq/features/build_features.py)
+    Computes the 16 user/product/interaction features described in Section
+    4, strictly from eval_set='prior' rows only (never touching the held-out
+    order), and assembles the final labeled training dataset: 8,474,661
+    candidate (user, product) rows across 131,209 users, 9.8% positive.
+
+  STEP 3 - Train the reorder model
+    (src/reorderiq/models/train_reorder_model.py)
+    Splits users 90/10, trains the gradient-boosted classifier, tunes the
+    probability threshold on the held-out 10% to maximize mean per-order F1,
+    and saves the trained model plus a metrics report. Produces:
+    data/processed/reorder_model.joblib and
+    reports/reorder_model_metrics.json.
+
+  STEP 4 - Cluster synthetic stores
+    (src/reorderiq/features/build_synthetic_stores.py)
+    Builds the per-user department-share + cadence profile described in
+    Section 5, runs K-means with k=18, validates the clusters with
+    Kruskal-Wallis, and writes a user_store_map table (which user belongs to
+    which of the 18 stores) into the DuckDB file, plus
+    reports/store_clustering_validation.json.
+
+  STEP 5 - Build the demand hierarchy
+    (src/reorderiq/features/build_hierarchical_demand.py)
+    Reconstructs the relative per-user calendar, buckets into weeks, builds
+    the store x product x week demand table for the top 3,000 products, and
+    computes the weighted-moving-average next-week forecast per
+    (store, product), verifying bottom-up reconciliation holds exactly.
+
+  STEP 6 - Compute MEIO (src/reorderiq/meio/build_meio.py)
+    Reads the forecasts from Step 5, computes store-level safety stock and
+    reorder points, computes the pooled department-DC-level safety stock
+    across all stores serving each product, and reports the network-wide
+    pooling benefit. Produces reports/meio_summary.json.
+
+  STEP 7 - Mine association rules
+    (src/reorderiq/rules/build_association_rules.py)
+    Computes the exact full-history pairwise co-occurrence rules (Section 8,
+    method 1) and runs the sampled FP-Growth pass (method 2), saving
+    complement rules, substitute candidates, and multi-item rules as CSVs in
+    reports/.
+
+  STEP 8 - Run the control tower
+    (src/reorderiq/agents/control_tower.py)
+    Scores every candidate (user, product) row from Step 2 with the trained
+    model from Step 3, rolls those probabilities up to store-level ML demand,
+    compares against the historical baseline from Step 5 (as described in
+    Section 9), flags exceptions, attaches transfer and substitute
+    recommendations, and writes reports/control_tower_exceptions.json and
+    reports/control_tower_summary.json.
+
+  STEP 9 - Consolidate for the dashboard
+    (src/reorderiq/dashboard_data.py)
+    Pulls every report generated above into a single
+    reports/dashboard_data.json file, which the HTML dashboard reads and
+    renders as charts and tables.
+
+The whole sequence is automated by run_pipeline.sh at the project root - it
+runs all nine steps in this exact order with one command.
+
+
+================================================================================
+11. WHERE EVERY FILE LIVES AND WHAT IT DOES
+================================================================================
+
+data/raw/
+  The six original Instacart CSV files, unmodified.
+
+data/processed/
+  reorderiq.duckdb        - the single database file every step reads/writes
+  reorder_model.joblib    - the trained, ready-to-use reorder model
+
+src/reorderiq/
+  ingest/build_db.py                    - Step 1 (see Section 10)
+  features/build_features.py            - Step 2
+  features/build_synthetic_stores.py    - Step 4
+  features/build_hierarchical_demand.py - Step 5
+  models/train_reorder_model.py         - Step 3
+  meio/build_meio.py                    - Step 6
+  rules/build_association_rules.py      - Step 7
+  agents/control_tower.py               - Step 8
+  dashboard_data.py                     - Step 9
+
+reports/
+  All generated metrics and rule tables, as JSON and CSV - this is the
+  "single source of truth" the dashboard, this document, and the README all
+  pull their numbers from. Nothing in any write-up was hand-typed separately
+  from what these files contain.
+
+dashboard/
+  index.html    - the interactive, self-contained dashboard (charts, sortable
+                  tables, search) built from reports/dashboard_data.json
+  template.html - the source template index.html is generated from
+
+docs/
+  project-description.html - a longer narrative case-study write-up, as a
+                              styled webpage
+
+README.md            - project overview and quick reference (markdown)
+requirements.txt      - the exact Python package versions used
+run_pipeline.sh       - runs all nine steps above in order
+ReorderIQ_Explained.txt - this file
+
+
+================================================================================
+12. RESULTS SUMMARY (ALL NUMBERS IN ONE PLACE)
+================================================================================
+
+  Dataset scale
+    Orders:                          3,421,083
+    Order-product rows:              33,819,106
+    Users:                           206,209
+    Products:                        49,688 (top 3,000 used for the demand
+                                      hierarchy, covering 73.0% of volume)
+
+  Reorder model (Section 4)
+    Mean per-order F1:                0.3706  (Kaggle public range 0.38-0.40)
+    Validation AUC:                   0.831
+    Candidate training rows:          8,474,661 across 131,209 users
+    Held-out validation users:        13,120 (never seen in training)
+
+  Synthetic store network (Section 5)
+    Number of stores:                 18
+    Departments differing at p<0.01:  21 of 21
+    Pseudo-F statistic:               9,397
+    Store size range:                 798 to 35,588 users
+
+  MEIO / safety stock (Section 7)
+    Service level target:             95% (z = 1.645)
+    Store lead time:                  1 day (assumption)
+    DC lead time:                     3 days (assumption)
+    Safety stock with no pooling:     190,832 units
+    Safety stock pooled at DC:        133,325 units
+    Network-wide reduction:           30.1%
+
+  Association rules (Section 8)
+    Pairs scored (exact, full data):  415,479
+    Substitute candidates found:      700
+    FP-Growth frequent itemsets:      1,475 (106,310-order sample)
+
+  Control tower (Section 9)
+    Total store-SKU positions:        49,256
+    Exceptions flagged:               2,397 (4.9%)
+    Exceptions with a transfer donor: 1,079 (45% of exceptions)
+    Exceptions with a substitute:     821 (34% of exceptions)
+
+
+================================================================================
+13. WHAT'S REAL VS. SIMULATED (READ THIS BEFORE TRUSTING ANY NUMBER)
+================================================================================
+
+REAL, UNMODIFIED:
+  - All 3.42 million orders and 33.8 million order-product rows.
+  - The reorder-prediction model and its evaluation (Section 4) - trained and
+    scored entirely on real transactions, real labels.
+  - The association rules (Section 8) - the pairwise rules are exact
+    computations over the full real history, no simulation involved at all.
+
+SIMULATED (CLEARLY LABELED, STATISTICALLY VALIDATED WHERE POSSIBLE):
+  - The 18 "stores" themselves - genuine clusters of real users, but not real
+    store locations or real store operations. Validated as behaviorally
+    distinct (Section 5), not validated as geographically or operationally
+    real, because they aren't.
+  - The weekly calendar used for forecasting - reconstructed relative timing
+    per user, not real synchronized calendar dates across users.
+  - The 1-day store / 3-day DC lead times and the 95% service level target -
+    stated modeling assumptions, since Instacart provides no supplier or
+    fulfillment data whatsoever.
+  - "Inventory levels" in general - there are no observed stock levels
+    anywhere in the source data. Every inventory number in this project is a
+    demand-coverage TARGET computed from forecasted demand and safety stock,
+    not an observed shelf or warehouse count. This is stated as a modeling
+    choice, not hidden.
+
+CHECKED FOR CORRECTNESS:
+  - No leakage into the held-out order: validation always uses a 90/10 split
+    by USER (not by row), and the model is scored only against Kaggle's
+    'train' eval_set orders (labels genuinely never seen), never the 'test'
+    eval_set (which Kaggle permanently withholds labels for and which cannot
+    be scored by anyone outside the original competition).
+
+
+================================================================================
+14. HOW TO REPRODUCE THIS YOURSELF
+================================================================================
+
+  1. Get the data: download the Instacart Market Basket Analysis dataset
+     from Kaggle (kaggle.com/competitions/instacart-market-basket-analysis)
+     - free login required, the dataset is no longer hosted anywhere else -
+     and place the six CSVs in data/raw/.
+
+  2. Set up the environment:
+       python3 -m venv .venv
+       source .venv/bin/activate
+       pip install -r requirements.txt
+
+  3. Run everything:
+       ./run_pipeline.sh
+
+  4. Open the results:
+       dashboard/index.html          (interactive dashboard, open in a browser)
+       docs/project-description.html (narrative write-up)
+       reports/*.json, reports/*.csv (raw numbers behind everything)
+
+
+================================================================================
+15. GLOSSARY OF TERMS USED THROUGHOUT
+================================================================================
+
+AUC                 "Area Under the (ROC) Curve" - a score from 0.5 (no
+                     better than guessing) to 1.0 (perfect) for how well a
+                     model ranks positive cases above negative ones.
+
+Confidence          In association rules: given product A was bought, the
+                     fraction of the time product B was also bought.
+
+DC                  Distribution center - a warehouse that supplies multiple
+                     stores. Here, simulated at the department/category level.
+
+F1 score            The harmonic mean of precision and recall - a single
+                     number balancing "did I miss real reorders" against
+                     "did I falsely predict reorders that didn't happen."
+
+FP-Growth           An algorithm for finding frequent itemsets (products
+                     that appear together often) in transaction data,
+                     without having to check every possible combination.
+
+K-means              A clustering algorithm that groups similar data points
+                     into a fixed number (K) of groups, by repeatedly
+                     assigning points to the nearest group center and
+                     recomputing centers.
+
+Kruskal-Wallis test A statistical test for whether several groups' value
+                     distributions differ from each other significantly.
+
+Lead time            How long it takes for a new order of stock to arrive
+                     once triggered.
+
+Lift                 In association rules: how much more/less often two
+                     products appear together than pure chance would predict.
+                     Lift 1 = no relationship, >1 = bought together more than
+                     chance (complements), <1 = less than chance (often
+                     substitutes).
+
+MEIO                 Multi-Echelon Inventory Optimization - deciding safety
+                     stock and reorder points across more than one linked
+                     tier of a supply chain at once (e.g., stores and their
+                     shared DC), rather than each location in isolation.
+
+Reorder point (ROP)  The inventory level that should trigger placing a new
+                     order for more stock.
+
+Risk pooling          The supply-chain principle that combining several
+                     independent variable-demand streams reduces the
+                     COMBINED variability (as a share of total demand)
+                     compared to each stream on its own - meaning less total
+                     safety stock is needed when demand is aggregated.
+
+Safety stock          Extra inventory held beyond expected average demand,
+                     to absorb real-world demand variability without running
+                     out.
+
+Service level          The target probability of not running out of stock
+                     before the next delivery arrives (this project targets
+                     95%).
+
+Silhouette score      A measure of how well-separated clustering results
+                     are, from -1 (bad) to 1 (perfectly separated).
+
+Support               In association rules: how often a pair of products
+                     appears together, as a fraction of all orders.
+
+z-score (in MEIO)     A statistical multiplier corresponding to a target
+                     service level, used to size safety stock (95% service
+                     level corresponds to z = 1.645).
+
+================================================================================
+END OF DOCUMENT
+================================================================================

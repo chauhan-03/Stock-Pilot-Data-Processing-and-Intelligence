@@ -1,0 +1,31 @@
+antecedents,consequents,support,confidence,lift
+Icelandic Style Skyr Blueberry Non-fat Yogurt,Non Fat Raspberry Yogurt,0.004355187658733891,0.411190053285968,42.98290517682523
+Non Fat Raspberry Yogurt,Icelandic Style Skyr Blueberry Non-fat Yogurt,0.004355187658733891,0.45526057030481804,42.98290517682523
+Icelandic Style Skyr Blueberry Non-fat Yogurt,Vanilla Skyr Nonfat Yogurt,0.003875458564575299,0.3658969804618118,36.31980204752121
+Vanilla Skyr Nonfat Yogurt,Icelandic Style Skyr Blueberry Non-fat Yogurt,0.003875458564575299,0.38468720821662,36.3198020475212
+Vanilla Skyr Nonfat Yogurt,Non Fat Raspberry Yogurt,0.003132348791270812,0.31092436974789917,32.501838493509496
+Non Fat Raspberry Yogurt,Vanilla Skyr Nonfat Yogurt,0.003132348791270812,0.3274336283185841,32.501838493509496
+Total 2% Lowfat Greek Strained Yogurt with Peach,Total 2% Lowfat Greek Strained Yogurt With Blueberry,0.0038096133947888252,0.33554266777133396,27.71681508218377
+Total 2% Lowfat Greek Strained Yogurt With Blueberry,Total 2% Lowfat Greek Strained Yogurt with Peach,0.0038096133947888252,0.31468531468531474,27.71681508218377
+Total 2% Lowfat Greek Strained Yogurt With Blueberry,Total 2% with Strawberry Lowfat Greek Strained Yogurt,0.005568620073370332,0.4599844599844601,27.658907206418526
+Total 2% with Strawberry Lowfat Greek Strained Yogurt,Total 2% Lowfat Greek Strained Yogurt With Blueberry,0.005568620073370332,0.33484162895927605,27.658907206418522
+Total 2% Lowfat Greek Strained Yogurt With Blueberry,Total 2% Greek Strained Yogurt with Cherry 5.3 oz,0.003273445583670398,0.2703962703962704,26.275893515381632
+Total 2% Greek Strained Yogurt with Cherry 5.3 oz,Total 2% Lowfat Greek Strained Yogurt With Blueberry,0.003273445583670398,0.3180987202925045,26.27589351538163
+Total 2% with Strawberry Lowfat Greek Strained Yogurt,Total 2% Lowfat Greek Strained Yogurt with Peach,0.004947794186812154,0.2975113122171946,26.20416537018224
+Total 2% Lowfat Greek Strained Yogurt with Peach,Total 2% with Strawberry Lowfat Greek Strained Yogurt,0.004947794186812154,0.43579121789560904,26.20416537018224
+Total 2% Greek Strained Yogurt with Cherry 5.3 oz,Total 2% with Strawberry Lowfat Greek Strained Yogurt,0.003301664942150315,0.32084095063985374,19.292195397354554
+Total 2% with Strawberry Lowfat Greek Strained Yogurt,Total 2% Greek Strained Yogurt with Cherry 5.3 oz,0.003301664942150315,0.1985294117647059,19.292195397354554
+Total 2% with Strawberry Lowfat Greek Strained Yogurt,Total 2% All Natural Greek Strained Yogurt with Honey,0.003649703696735961,0.21945701357466063,17.15476111258983
+Total 2% All Natural Greek Strained Yogurt with Honey,Total 2% with Strawberry Lowfat Greek Strained Yogurt,0.003649703696735961,0.2852941176470588,17.15476111258983
+Frozen Organic Wild Blueberries,Organic Whole Strawberries,0.004402219922867087,0.2504012841091493,14.06985227993851
+Organic Whole Strawberries,Frozen Organic Wild Blueberries,0.004402219922867087,0.24735729386892175,14.069852279938507
+Yellow Bell Pepper,Orange Bell Pepper,0.004185871507854388,0.2723378212974296,11.94399083421194
+Orange Bell Pepper,Yellow Bell Pepper,0.004185871507854388,0.18358085808580857,11.94399083421194
+Lime Sparkling Water,Sparkling Lemon Water,0.0038284263004421033,0.16591928251121077,10.499332692718344
+Sparkling Lemon Water,Lime Sparkling Water,0.0038284263004421033,0.24226190476190476,10.499332692718344
+Sparkling Water Berry,Sparkling Water Grapefruit,0.003264039130843759,0.3648790746582545,10.106903185752744
+Sparkling Water Grapefruit,Sparkling Water Berry,0.003264039130843759,0.09041167274622199,10.106903185752744
+Sparkling Water Grapefruit,Peach Pear Flavored Sparkling Water,0.0033486972062835105,0.09275664408546118,9.071719257337055
+Peach Pear Flavored Sparkling Water,Sparkling Water Grapefruit,0.0033486972062835105,0.3275068997240111,9.071719257337055
+Organic Red Bell Pepper,Organic Bell Pepper,0.003913084375881855,0.11744776962168266,8.453535808044064
+Organic Bell Pepper,Organic Red Bell Pepper,0.003913084375881855,0.2816519972918077,8.453535808044064

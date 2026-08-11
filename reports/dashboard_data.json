@@ -1,0 +1,1684 @@
+{
+  "reorder_model": {
+    "n_rows": 8474661,
+    "n_users": 131209,
+    "val_users": 13120,
+    "positive_rate": 0.09780025419305857,
+    "auc": 0.8308656298717693,
+    "threshold": 0.18000000000000002,
+    "mean_per_order_f1": 0.37057191941305156,
+    "pointwise_f1": 0.4269970323442662,
+    "kaggle_public_benchmark_range": [
+      0.38,
+      0.4
+    ],
+    "features": [
+      "up_order_count",
+      "up_avg_cart_position",
+      "up_reorder_rate",
+      "up_order_rate",
+      "up_orders_since_last",
+      "user_total_orders",
+      "user_avg_days_between_orders",
+      "user_avg_basket_size",
+      "user_reorder_ratio",
+      "user_distinct_products",
+      "product_total_orders",
+      "product_reorder_rate",
+      "product_avg_cart_position",
+      "product_distinct_users",
+      "department_id",
+      "aisle_id"
+    ]
+  },
+  "clustering": {
+    "n_stores": 18,
+    "n_departments_significant_at_p01": 21,
+    "n_departments_total": 21,
+    "pseudo_f_stat": 9397.12013331046,
+    "kruskal_wallis_by_department": {
+      "dept_share_1": {
+        "H": 52417.00017816381,
+        "p": 0.0
+      },
+      "dept_share_2": {
+        "H": 15470.193401634246,
+        "p": 0.0
+      },
+      "dept_share_3": {
+        "H": 25560.420306476855,
+        "p": 0.0
+      },
+      "dept_share_4": {
+        "H": 95070.26410897898,
+        "p": 0.0
+      },
+      "dept_share_5": {
+        "H": 27359.787353411968,
+        "p": 0.0
+      },
+      "dept_share_6": {
+        "H": 42291.05573166782,
+        "p": 0.0
+      },
+      "dept_share_7": {
+        "H": 28135.469058398096,
+        "p": 0.0
+      },
+      "dept_share_8": {
+        "H": 22101.14726006408,
+        "p": 0.0
+      },
+      "dept_share_9": {
+        "H": 48918.173935578314,
+        "p": 0.0
+      },
+      "dept_share_10": {
+        "H": 7474.623755554719,
+        "p": 0.0
+      },
+      "dept_share_11": {
+        "H": 17676.158089024335,
+        "p": 0.0
+      },
+      "dept_share_12": {
+        "H": 46490.91759526282,
+        "p": 0.0
+      },
+      "dept_share_13": {
+        "H": 24614.596035915696,
+        "p": 0.0
+      },
+      "dept_share_14": {
+        "H": 31342.84027140164,
+        "p": 0.0
+      },
+      "dept_share_15": {
+        "H": 55387.86759606363,
+        "p": 0.0
+      },
+      "dept_share_16": {
+        "H": 53253.29215829586,
+        "p": 0.0
+      },
+      "dept_share_17": {
+        "H": 20728.183872463607,
+        "p": 0.0
+      },
+      "dept_share_18": {
+        "H": 43875.64594844774,
+        "p": 0.0
+      },
+      "dept_share_19": {
+        "H": 32011.966159763662,
+        "p": 0.0
+      },
+      "dept_share_20": {
+        "H": 44505.476100338194,
+        "p": 0.0
+      },
+      "dept_share_21": {
+        "H": 28436.27845527137,
+        "p": 0.0
+      }
+    },
+    "cluster_summary": {
+      "0": {
+        "n_users": 35588,
+        "avg_basket_size": 17.14,
+        "avg_orders": 11.46,
+        "avg_days_between": 16.39
+      },
+      "1": {
+        "n_users": 7344,
+        "avg_basket_size": 4.67,
+        "avg_orders": 12.36,
+        "avg_days_between": 16.69
+      },
+      "2": {
+        "n_users": 17284,
+        "avg_basket_size": 9.19,
+        "avg_orders": 9.32,
+        "avg_days_between": 17.46
+      },
+      "3": {
+        "n_users": 8732,
+        "avg_basket_size": 7.65,
+        "avg_orders": 9.92,
+        "avg_days_between": 17.2
+      },
+      "4": {
+        "n_users": 1296,
+        "avg_basket_size": 8.89,
+        "avg_orders": 11.98,
+        "avg_days_between": 16.55
+      },
+      "5": {
+        "n_users": 24259,
+        "avg_basket_size": 7.96,
+        "avg_orders": 12.1,
+        "avg_days_between": 15.42
+      },
+      "6": {
+        "n_users": 7602,
+        "avg_basket_size": 6.45,
+        "avg_orders": 13.64,
+        "avg_days_between": 15.84
+      },
+      "7": {
+        "n_users": 6088,
+        "avg_basket_size": 9.22,
+        "avg_orders": 9.4,
+        "avg_days_between": 16.93
+      },
+      "8": {
+        "n_users": 798,
+        "avg_basket_size": 5.67,
+        "avg_orders": 9.78,
+        "avg_days_between": 16.6
+      },
+      "9": {
+        "n_users": 34637,
+        "avg_basket_size": 8.67,
+        "avg_orders": 12.12,
+        "avg_days_between": 15.27
+      },
+      "10": {
+        "n_users": 5402,
+        "avg_basket_size": 5.95,
+        "avg_orders": 9.98,
+        "avg_days_between": 18.52
+      },
+      "11": {
+        "n_users": 4274,
+        "avg_basket_size": 12.37,
+        "avg_orders": 16.51,
+        "avg_days_between": 14.11
+      },
+      "12": {
+        "n_users": 13715,
+        "avg_basket_size": 8.81,
+        "avg_orders": 10.79,
+        "avg_days_between": 16.28
+      },
+      "13": {
+        "n_users": 1844,
+        "avg_basket_size": 4.52,
+        "avg_orders": 12.38,
+        "avg_days_between": 14.79
+      },
+      "14": {
+        "n_users": 5087,
+        "avg_basket_size": 7.17,
+        "avg_orders": 11.13,
+        "avg_days_between": 16.86
+      },
+      "15": {
+        "n_users": 9521,
+        "avg_basket_size": 8.24,
+        "avg_orders": 10.87,
+        "avg_days_between": 16.47
+      },
+      "16": {
+        "n_users": 20295,
+        "avg_basket_size": 10.63,
+        "avg_orders": 53.92,
+        "avg_days_between": 6.51
+      },
+      "17": {
+        "n_users": 2443,
+        "avg_basket_size": 9.38,
+        "avg_orders": 8.72,
+        "avg_days_between": 12.92
+      }
+    },
+    "k_selection_silhouette_scores": {
+      "12": 0.05413373129737107,
+      "15": 0.06916497776177287,
+      "18": 0.07685447822363536,
+      "20": 0.07905764548388361
+    }
+  },
+  "meio": {
+    "service_level_target": 0.95,
+    "z": 1.644853626951472,
+    "store_lead_time_days": 1,
+    "dc_lead_time_days": 3,
+    "n_store_product_pairs": 51989,
+    "n_dc_product_pairs": 3000,
+    "total_safety_stock_units_no_pooling": 190831.64566572633,
+    "total_safety_stock_units_pooled_at_dc": 133325.10270428943,
+    "network_safety_stock_reduction_from_pooling_pct": 30.134699494322483,
+    "target_fill_rate_pct": 95.0
+  },
+  "control_tower": {
+    "total_store_sku_positions": 49256,
+    "n_exceptions": 2397,
+    "exception_rate_pct": 4.87,
+    "n_exceptions_with_transfer_recommendation": 1079,
+    "n_exceptions_with_substitute_recommendation": 821
+  },
+  "association": {
+    "pairwise_exact": {
+      "n_pairs_scored": 415479,
+      "n_substitution_candidates": 700
+    },
+    "fpgrowth_sample": {
+      "n_frequent_itemsets": 1475,
+      "n_multi_item_rules": 30,
+      "sample_orders": 106310
+    }
+  },
+  "store_sizes": [
+    {
+      "store_id": 0,
+      "n_users": 35588
+    },
+    {
+      "store_id": 1,
+      "n_users": 7344
+    },
+    {
+      "store_id": 2,
+      "n_users": 17284
+    },
+    {
+      "store_id": 3,
+      "n_users": 8732
+    },
+    {
+      "store_id": 4,
+      "n_users": 1296
+    },
+    {
+      "store_id": 5,
+      "n_users": 24259
+    },
+    {
+      "store_id": 6,
+      "n_users": 7602
+    },
+    {
+      "store_id": 7,
+      "n_users": 6088
+    },
+    {
+      "store_id": 8,
+      "n_users": 798
+    },
+    {
+      "store_id": 9,
+      "n_users": 34637
+    },
+    {
+      "store_id": 10,
+      "n_users": 5402
+    },
+    {
+      "store_id": 11,
+      "n_users": 4274
+    },
+    {
+      "store_id": 12,
+      "n_users": 13715
+    },
+    {
+      "store_id": 13,
+      "n_users": 1844
+    },
+    {
+      "store_id": 14,
+      "n_users": 5087
+    },
+    {
+      "store_id": 15,
+      "n_users": 9521
+    },
+    {
+      "store_id": 16,
+      "n_users": 20295
+    },
+    {
+      "store_id": 17,
+      "n_users": 2443
+    }
+  ],
+  "top_dept_by_store": {
+    "0": [
+      {
+        "department": "produce",
+        "share": 0.514
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.312
+      },
+      {
+        "department": "snacks",
+        "share": 0.174
+      }
+    ],
+    "1": [
+      {
+        "department": "beverages",
+        "share": 0.691
+      },
+      {
+        "department": "snacks",
+        "share": 0.157
+      },
+      {
+        "department": "produce",
+        "share": 0.153
+      }
+    ],
+    "2": [
+      {
+        "department": "produce",
+        "share": 0.498
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.272
+      },
+      {
+        "department": "pantry",
+        "share": 0.231
+      }
+    ],
+    "3": [
+      {
+        "department": "produce",
+        "share": 0.524
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.263
+      },
+      {
+        "department": "meat seafood",
+        "share": 0.213
+      }
+    ],
+    "4": [
+      {
+        "department": "pets",
+        "share": 0.494
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.257
+      },
+      {
+        "department": "produce",
+        "share": 0.249
+      }
+    ],
+    "5": [
+      {
+        "department": "dairy eggs",
+        "share": 0.483
+      },
+      {
+        "department": "produce",
+        "share": 0.368
+      },
+      {
+        "department": "beverages",
+        "share": 0.149
+      }
+    ],
+    "6": [
+      {
+        "department": "snacks",
+        "share": 0.585
+      },
+      {
+        "department": "beverages",
+        "share": 0.22
+      },
+      {
+        "department": "produce",
+        "share": 0.195
+      }
+    ],
+    "7": [
+      {
+        "department": "produce",
+        "share": 0.551
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.286
+      },
+      {
+        "department": "beverages",
+        "share": 0.163
+      }
+    ],
+    "8": [
+      {
+        "department": "produce",
+        "share": 0.435
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.309
+      },
+      {
+        "department": "beverages",
+        "share": 0.256
+      }
+    ],
+    "9": [
+      {
+        "department": "produce",
+        "share": 0.738
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.182
+      },
+      {
+        "department": "beverages",
+        "share": 0.08
+      }
+    ],
+    "10": [
+      {
+        "department": "household",
+        "share": 0.464
+      },
+      {
+        "department": "personal care",
+        "share": 0.276
+      },
+      {
+        "department": "beverages",
+        "share": 0.259
+      }
+    ],
+    "11": [
+      {
+        "department": "produce",
+        "share": 0.386
+      },
+      {
+        "department": "babies",
+        "share": 0.337
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.277
+      }
+    ],
+    "12": [
+      {
+        "department": "frozen",
+        "share": 0.471
+      },
+      {
+        "department": "produce",
+        "share": 0.287
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.241
+      }
+    ],
+    "13": [
+      {
+        "department": "alcohol",
+        "share": 0.689
+      },
+      {
+        "department": "beverages",
+        "share": 0.188
+      },
+      {
+        "department": "produce",
+        "share": 0.124
+      }
+    ],
+    "14": [
+      {
+        "department": "dairy eggs",
+        "share": 0.353
+      },
+      {
+        "department": "breakfast",
+        "share": 0.338
+      },
+      {
+        "department": "produce",
+        "share": 0.309
+      }
+    ],
+    "15": [
+      {
+        "department": "produce",
+        "share": 0.457
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.277
+      },
+      {
+        "department": "deli",
+        "share": 0.266
+      }
+    ],
+    "16": [
+      {
+        "department": "produce",
+        "share": 0.544
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.309
+      },
+      {
+        "department": "snacks",
+        "share": 0.147
+      }
+    ],
+    "17": [
+      {
+        "department": "produce",
+        "share": 0.498
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.312
+      },
+      {
+        "department": "beverages",
+        "share": 0.19
+      }
+    ]
+  },
+  "dc_dept_totals": [
+    {
+      "department": "produce",
+      "total_weekly_demand": 55339.32857142859,
+      "total_safety_stock": 51834.4304426418,
+      "avg_pooling_reduction": 0.26787680059731883
+    },
+    {
+      "department": "dairy eggs",
+      "total_weekly_demand": 31677.03333333333,
+      "total_safety_stock": 23554.890182245374,
+      "avg_pooling_reduction": 0.3249664504805293
+    },
+    {
+      "department": "snacks",
+      "total_weekly_demand": 14128.619047619046,
+      "total_safety_stock": 8997.408035300628,
+      "avg_pooling_reduction": 0.3341159573702986
+    },
+    {
+      "department": "beverages",
+      "total_weekly_demand": 13305.0761904762,
+      "total_safety_stock": 8930.698421367952,
+      "avg_pooling_reduction": 0.4078682149831952
+    },
+    {
+      "department": "frozen",
+      "total_weekly_demand": 10429.995238095242,
+      "total_safety_stock": 7987.408512502206,
+      "avg_pooling_reduction": 0.3117593305300124
+    },
+    {
+      "department": "pantry",
+      "total_weekly_demand": 7989.514285714286,
+      "total_safety_stock": 5741.641005436469,
+      "avg_pooling_reduction": 0.3518267519964194
+    },
+    {
+      "department": "bakery",
+      "total_weekly_demand": 6619.604761904764,
+      "total_safety_stock": 4679.854519189035,
+      "avg_pooling_reduction": 0.3157734912095898
+    },
+    {
+      "department": "deli",
+      "total_weekly_demand": 5533.942857142857,
+      "total_safety_stock": 4210.833410968813,
+      "avg_pooling_reduction": 0.3271066565607341
+    },
+    {
+      "department": "canned goods",
+      "total_weekly_demand": 4934.633333333334,
+      "total_safety_stock": 4066.2745176737026,
+      "avg_pooling_reduction": 0.28707151833788097
+    },
+    {
+      "department": "dry goods pasta",
+      "total_weekly_demand": 4010.7285714285717,
+      "total_safety_stock": 3616.0271152626146,
+      "avg_pooling_reduction": 0.19487619649285912
+    },
+    {
+      "department": "breakfast",
+      "total_weekly_demand": 3795.8714285714295,
+      "total_safety_stock": 2541.8713646240126,
+      "avg_pooling_reduction": 0.3377098015783812
+    },
+    {
+      "department": "meat seafood",
+      "total_weekly_demand": 3635.5190476190455,
+      "total_safety_stock": 3136.1501100194396,
+      "avg_pooling_reduction": 0.30490385805837217
+    },
+    {
+      "department": "household",
+      "total_weekly_demand": 2440.752380952382,
+      "total_safety_stock": 1531.0913138159829,
+      "avg_pooling_reduction": 0.386638397697875
+    },
+    {
+      "department": "babies",
+      "total_weekly_demand": 2159.6095238095236,
+      "total_safety_stock": 1204.6695979761544,
+      "avg_pooling_reduction": 0.12964178762285794
+    },
+    {
+      "department": "international",
+      "total_weekly_demand": 839.5714285714286,
+      "total_safety_stock": 514.2308606431353,
+      "avg_pooling_reduction": 0.3268381615095736
+    },
+    {
+      "department": "personal care",
+      "total_weekly_demand": 401.85714285714283,
+      "total_safety_stock": 227.14513020903445,
+      "avg_pooling_reduction": 0.3896406178659058
+    },
+    {
+      "department": "alcohol",
+      "total_weekly_demand": 298.91904761904766,
+      "total_safety_stock": 356.6379080109868,
+      "avg_pooling_reduction": 0.3618705495965932
+    },
+    {
+      "department": "bulk",
+      "total_weekly_demand": 212.07142857142856,
+      "total_safety_stock": 98.91092736827846,
+      "avg_pooling_reduction": 0.3076812798511435
+    },
+    {
+      "department": "missing",
+      "total_weekly_demand": 150.38095238095238,
+      "total_safety_stock": 74.40281577540514,
+      "avg_pooling_reduction": 0.19993432175785597
+    },
+    {
+      "department": "other",
+      "total_weekly_demand": 34.57142857142857,
+      "total_safety_stock": 20.526513258360062,
+      "avg_pooling_reduction": 0.3346962239832181
+    }
+  ],
+  "top_exceptions": [
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 1009.8,
+      "historical_baseline_demand": 346.4,
+      "ml_vs_baseline_ratio": 1.86,
+      "order_up_to_store": 236.1,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 838.9,
+      "historical_baseline_demand": 317.4,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 208.6,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 671.1,
+      "historical_baseline_demand": 267.8,
+      "ml_vs_baseline_ratio": 1.58,
+      "order_up_to_store": 168.5,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 545.4,
+      "historical_baseline_demand": 169.0,
+      "ml_vs_baseline_ratio": 2.06,
+      "order_up_to_store": 113.7,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 3,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 543.8,
+      "historical_baseline_demand": 202.6,
+      "ml_vs_baseline_ratio": 1.78,
+      "order_up_to_store": 137.5,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 464.7,
+      "historical_baseline_demand": 175.1,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 107.0,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 453.2,
+      "historical_baseline_demand": 163.8,
+      "ml_vs_baseline_ratio": 1.75,
+      "order_up_to_store": 97.1,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 21903,
+      "product_name": "Organic Baby Spinach",
+      "direction": "understock_risk",
+      "ml_expected_demand": 446.5,
+      "historical_baseline_demand": 166.0,
+      "ml_vs_baseline_ratio": 1.72,
+      "order_up_to_store": 114.4,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 555.5
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 48205,
+          "product_name": "Spinach",
+          "lift": 0.09
+        },
+        {
+          "product_id": 25931,
+          "product_name": "Organic Baby Spinach Salad",
+          "lift": 0.14
+        },
+        {
+          "product_id": 36070,
+          "product_name": "Super Spinach! Baby Spinach, Baby Bok Choy, Sweet Baby Kale",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47626,
+      "product_name": "Large Lemon",
+      "direction": "understock_risk",
+      "ml_expected_demand": 419.7,
+      "historical_baseline_demand": 162.5,
+      "ml_vs_baseline_ratio": 1.65,
+      "order_up_to_store": 102.1,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 300.4
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 5876,
+          "product_name": "Organic Lemon",
+          "lift": 0.07
+        },
+        {
+          "product_id": 10326,
+          "product_name": "Organic Fuji Apples",
+          "lift": 0.19
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.28
+        }
+      ]
+    },
+    {
+      "store_id": 11,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 386.4,
+      "historical_baseline_demand": 208.3,
+      "ml_vs_baseline_ratio": 1.55,
+      "order_up_to_store": 132.0,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 1,
+      "department_id": 7,
+      "product_id": 196,
+      "product_name": "Soda",
+      "direction": "understock_risk",
+      "ml_expected_demand": 367.5,
+      "historical_baseline_demand": 168.8,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 117.0,
+      "recommended_transfer": {
+        "donor_store_id": 6,
+        "surplus_units": 51.1
+      },
+      "substitute_recommendations": []
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47766,
+      "product_name": "Organic Avocado",
+      "direction": "understock_risk",
+      "ml_expected_demand": 357.1,
+      "historical_baseline_demand": 136.0,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 103.9,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 435.6
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 5450,
+          "product_name": "Small Hass Avocado",
+          "lift": 0.05
+        },
+        {
+          "product_id": 47209,
+          "product_name": "Organic Hass Avocado",
+          "lift": 0.08
+        },
+        {
+          "product_id": 29223,
+          "product_name": "Golden Pineapple",
+          "lift": 0.26
+        }
+      ]
+    },
+    {
+      "store_id": 7,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 335.6,
+      "historical_baseline_demand": 110.8,
+      "ml_vs_baseline_ratio": 2.32,
+      "order_up_to_store": 84.7,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 3,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 323.2,
+      "historical_baseline_demand": 107.0,
+      "ml_vs_baseline_ratio": 2.01,
+      "order_up_to_store": 68.4,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 6,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 315.8,
+      "historical_baseline_demand": 163.6,
+      "ml_vs_baseline_ratio": 1.54,
+      "order_up_to_store": 106.6,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 6,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 296.1,
+      "historical_baseline_demand": 156.8,
+      "ml_vs_baseline_ratio": 1.51,
+      "order_up_to_store": 100.9,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 14,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 290.4,
+      "historical_baseline_demand": 121.6,
+      "ml_vs_baseline_ratio": 1.91,
+      "order_up_to_store": 82.6,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 21137,
+      "product_name": "Organic Strawberries",
+      "direction": "understock_risk",
+      "ml_expected_demand": 290.4,
+      "historical_baseline_demand": 116.6,
+      "ml_vs_baseline_ratio": 1.57,
+      "order_up_to_store": 82.4,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 533.8
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 16797,
+          "product_name": "Strawberries",
+          "lift": 0.11
+        },
+        {
+          "product_id": 39276,
+          "product_name": "Bananas",
+          "lift": 0.13
+        },
+        {
+          "product_id": 19604,
+          "product_name": "Medium Scarlet Raspberries",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47209,
+      "product_name": "Organic Hass Avocado",
+      "direction": "understock_risk",
+      "ml_expected_demand": 285.7,
+      "historical_baseline_demand": 108.6,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 78.0,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 369.3
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 47766,
+          "product_name": "Organic Avocado",
+          "lift": 0.08
+        },
+        {
+          "product_id": 5450,
+          "product_name": "Small Hass Avocado",
+          "lift": 0.12
+        },
+        {
+          "product_id": 23322,
+          "product_name": "Golden Delicious Apple",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 21903,
+      "product_name": "Organic Baby Spinach",
+      "direction": "understock_risk",
+      "ml_expected_demand": 284.1,
+      "historical_baseline_demand": 112.1,
+      "ml_vs_baseline_ratio": 1.61,
+      "order_up_to_store": 73.5,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 555.5
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 48205,
+          "product_name": "Spinach",
+          "lift": 0.09
+        },
+        {
+          "product_id": 25931,
+          "product_name": "Organic Baby Spinach Salad",
+          "lift": 0.14
+        },
+        {
+          "product_id": 36070,
+          "product_name": "Super Spinach! Baby Spinach, Baby Bok Choy, Sweet Baby Kale",
+          "lift": 0.16
+        }
+      ]
+    }
+  ],
+  "top_complement_rules": [
+    {
+      "name_a": "Coconut  Chocolate Bar",
+      "name_b": "Chocolate Sea Salt",
+      "n_together": 1461,
+      "support": 0.00044,
+      "lift": 329.06,
+      "conf_a_to_b": 0.452
+    },
+    {
+      "name_a": "Almond Milk Blueberry Yogurt",
+      "name_b": "Almond Milk Peach Yogurt",
+      "n_together": 2338,
+      "support": 0.0007,
+      "lift": 328.24,
+      "conf_a_to_b": 0.477
+    },
+    {
+      "name_a": "Almond Milk Blueberry Yogurt",
+      "name_b": "Almond Milk Strawberry Yogurt",
+      "n_together": 2782,
+      "support": 0.00083,
+      "lift": 321.86,
+      "conf_a_to_b": 0.568
+    },
+    {
+      "name_a": "Unsweetened Blackberry Water",
+      "name_b": "Unsweetened Watermelon Water",
+      "n_together": 1311,
+      "support": 0.00039,
+      "lift": 319.69,
+      "conf_a_to_b": 0.409
+    },
+    {
+      "name_a": "Coconut Chia Bar",
+      "name_b": "Acai Berry Chia Bar",
+      "n_together": 1382,
+      "support": 0.00041,
+      "lift": 318.59,
+      "conf_a_to_b": 0.286
+    },
+    {
+      "name_a": "Stage 1 Apples & Strawberries Organic Pureed Baby Food",
+      "name_b": "Organic Stage 2 Peaches & Bananas Baby Food",
+      "n_together": 1072,
+      "support": 0.00032,
+      "lift": 313.69,
+      "conf_a_to_b": 0.325
+    },
+    {
+      "name_a": "Almond Milk Strawberry Yogurt",
+      "name_b": "Almond Milk Peach Yogurt",
+      "n_together": 2534,
+      "support": 0.00076,
+      "lift": 294.98,
+      "conf_a_to_b": 0.429
+    },
+    {
+      "name_a": "Coconut Chia Bar",
+      "name_b": "Chocolate Peanut Butter",
+      "n_together": 1935,
+      "support": 0.00058,
+      "lift": 277.08,
+      "conf_a_to_b": 0.401
+    },
+    {
+      "name_a": "Non-Fat Blueberry on the Bottom Greek Yogurt",
+      "name_b": "Non-Fat Greek Yogurt With Strawberries on the Bottom",
+      "n_together": 1277,
+      "support": 0.00038,
+      "lift": 276.75,
+      "conf_a_to_b": 0.402
+    },
+    {
+      "name_a": "Stage 1 Apples Sweet Potatoes Pumpkin & Blueberries Organic Pureed Baby Food",
+      "name_b": "Organic 4 Months Butternut Squash Carrots Apples + Prunes Baby Food",
+      "n_together": 1575,
+      "support": 0.00047,
+      "lift": 275.93,
+      "conf_a_to_b": 0.275
+    },
+    {
+      "name_a": "Acai Berry Chia Bar",
+      "name_b": "Chocolate Peanut Butter",
+      "n_together": 1141,
+      "support": 0.00034,
+      "lift": 262.27,
+      "conf_a_to_b": 0.379
+    },
+    {
+      "name_a": "Organic 4 Months Butternut Squash Carrots Apples + Prunes Baby Food",
+      "name_b": "Organic Pears, Peas and Broccoli Puree Stage 1",
+      "n_together": 1285,
+      "support": 0.00038,
+      "lift": 250.44,
+      "conf_a_to_b": 0.385
+    },
+    {
+      "name_a": "Organic Lemon Lowfat Yogurt",
+      "name_b": "Lowfat Key Lime Yogurt",
+      "n_together": 1213,
+      "support": 0.00036,
+      "lift": 244.72,
+      "conf_a_to_b": 0.297
+    },
+    {
+      "name_a": "Yotoddler Organic Pear Spinach Mango Yogurt",
+      "name_b": "Organic Whole Milk Strawberry Beet Berry Yogurt Pouch",
+      "n_together": 2883,
+      "support": 0.00086,
+      "lift": 237.01,
+      "conf_a_to_b": 0.462
+    },
+    {
+      "name_a": "YoKids Squeeze Organic Blueberry Blue Yogurt",
+      "name_b": "YoKids Squeeze! Organic Strawberry Flavor Yogurt",
+      "n_together": 1719,
+      "support": 0.00051,
+      "lift": 232.88,
+      "conf_a_to_b": 0.487
+    }
+  ],
+  "top_substitute_rules": [
+    {
+      "name_a": "Strawberries",
+      "name_b": "Organic Hass Avocado",
+      "aisle_a": 24,
+      "n_together": 7862,
+      "lift": 0.8
+    },
+    {
+      "name_a": "Granny Smith Apples",
+      "name_b": "Bag of Organic Bananas",
+      "aisle_a": 24,
+      "n_together": 3453,
+      "lift": 0.78
+    },
+    {
+      "name_a": "Organic Lemon",
+      "name_b": "Strawberries",
+      "aisle_a": 24,
+      "n_together": 2778,
+      "lift": 0.68
+    },
+    {
+      "name_a": "Organic Fuji Apple",
+      "name_b": "Organic Gala Apples",
+      "aisle_a": 24,
+      "n_together": 1659,
+      "lift": 0.79
+    },
+    {
+      "name_a": "Apple Honeycrisp Organic",
+      "name_b": "Organic Fuji Apple",
+      "aisle_a": 24,
+      "n_together": 1578,
+      "lift": 0.65
+    },
+    {
+      "name_a": "Organic Strawberries",
+      "name_b": "Gala Apples",
+      "aisle_a": 24,
+      "n_together": 1558,
+      "lift": 0.76
+    },
+    {
+      "name_a": "Granny Smith Apples",
+      "name_b": "Organic Hass Avocado",
+      "aisle_a": 24,
+      "n_together": 1428,
+      "lift": 0.58
+    },
+    {
+      "name_a": "Strawberries",
+      "name_b": "Organic Strawberries",
+      "aisle_a": 24,
+      "n_together": 1415,
+      "lift": 0.11
+    },
+    {
+      "name_a": "Organic Gala Apples",
+      "name_b": "Honeycrisp Apple",
+      "aisle_a": 24,
+      "n_together": 1291,
+      "lift": 0.69
+    },
+    {
+      "name_a": "Organic Large Extra Fancy Fuji Apple",
+      "name_b": "Honeycrisp Apple",
+      "aisle_a": 24,
+      "n_together": 1209,
+      "lift": 0.62
+    },
+    {
+      "name_a": "Bag of Organic Bananas",
+      "name_b": "Banana",
+      "aisle_a": 24,
+      "n_together": 1204,
+      "lift": 0.02
+    },
+    {
+      "name_a": "Fat Free Milk",
+      "name_b": "Organic Whole Milk",
+      "aisle_a": 84,
+      "n_together": 1035,
+      "lift": 0.79
+    },
+    {
+      "name_a": "Spring Water",
+      "name_b": "Sparkling Water Grapefruit",
+      "aisle_a": 115,
+      "n_together": 963,
+      "lift": 0.7
+    },
+    {
+      "name_a": "Organic Hass Avocado",
+      "name_b": "Organic Avocado",
+      "aisle_a": 24,
+      "n_together": 941,
+      "lift": 0.08
+    },
+    {
+      "name_a": "Lime",
+      "name_b": "Bag of Organic Bananas",
+      "aisle_a": 24,
+      "n_together": 914,
+      "lift": 0.7
+    }
+  ],
+  "fpgrowth_rules": [
+    {
+      "antecedents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "consequents": "Non Fat Raspberry Yogurt",
+      "support": 0.0043551876587338,
+      "confidence": 0.411190053285968,
+      "lift": 42.98290517682523
+    },
+    {
+      "antecedents": "Non Fat Raspberry Yogurt",
+      "consequents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "support": 0.0043551876587338,
+      "confidence": 0.455260570304818,
+      "lift": 42.98290517682523
+    },
+    {
+      "antecedents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "consequents": "Vanilla Skyr Nonfat Yogurt",
+      "support": 0.0038754585645752,
+      "confidence": 0.3658969804618118,
+      "lift": 36.31980204752121
+    },
+    {
+      "antecedents": "Vanilla Skyr Nonfat Yogurt",
+      "consequents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "support": 0.0038754585645752,
+      "confidence": 0.38468720821662,
+      "lift": 36.3198020475212
+    },
+    {
+      "antecedents": "Vanilla Skyr Nonfat Yogurt",
+      "consequents": "Non Fat Raspberry Yogurt",
+      "support": 0.0031323487912708,
+      "confidence": 0.3109243697478991,
+      "lift": 32.501838493509496
+    },
+    {
+      "antecedents": "Non Fat Raspberry Yogurt",
+      "consequents": "Vanilla Skyr Nonfat Yogurt",
+      "support": 0.0031323487912708,
+      "confidence": 0.3274336283185841,
+      "lift": 32.501838493509496
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0038096133947888,
+      "confidence": 0.3355426677713339,
+      "lift": 27.71681508218377
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "support": 0.0038096133947888,
+      "confidence": 0.3146853146853147,
+      "lift": 27.71681508218377
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0055686200733703,
+      "confidence": 0.4599844599844601,
+      "lift": 27.65890720641853
+    },
+    {
+      "antecedents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0055686200733703,
+      "confidence": 0.334841628959276,
+      "lift": 27.65890720641852
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "support": 0.0032734455836703,
+      "confidence": 0.2703962703962704,
+      "lift": 26.275893515381632
+    },
+    {
+      "antecedents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0032734455836703,
+      "confidence": 0.3180987202925045,
+      "lift": 26.27589351538163
+    },
+    {
+      "antecedents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "support": 0.0049477941868121,
+      "confidence": 0.2975113122171946,
+      "lift": 26.20416537018224
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0049477941868121,
+      "confidence": 0.435791217895609,
+      "lift": 26.20416537018224
+    },
+    {
+      "antecedents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0033016649421503,
+      "confidence": 0.3208409506398537,
+      "lift": 19.29219539735455
+    }
+  ]
+}

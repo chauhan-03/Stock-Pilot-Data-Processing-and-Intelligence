@@ -1,0 +1,7 @@
+{
+  "total_store_sku_positions": 49256,
+  "n_exceptions": 2397,
+  "exception_rate_pct": 4.87,
+  "n_exceptions_with_transfer_recommendation": 1079,
+  "n_exceptions_with_substitute_recommendation": 821
+}

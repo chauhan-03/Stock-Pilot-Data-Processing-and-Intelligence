@@ -1,0 +1,2143 @@
+<meta charset="utf-8">
+<title>ReorderIQ — Control Tower Dashboard</title>
+<style>
+  .viz-root {
+    --surface-1:      #ffffff;
+    --surface-page:   #f5f7fa;
+    --surface-tint:   #eef2ff;
+    --text-primary:   #16181d;
+    --text-secondary: #5b6270;
+    --text-muted:     #8a90a0;
+    --gridline:       #eaecf1;
+    --baseline:       #d8dce4;
+    --border:         #e6e8ee;
+    --series-1:       #2a78d6; /* blue */
+    --series-2:       #eb6834; /* orange */
+    --series-3:       #1baf7a; /* aqua */
+    --series-4:       #eda100; /* yellow */
+    --series-7:       #4a3aa7; /* violet */
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical:#d03b3b;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
+    --shadow-md: 0 4px 10px rgba(16,24,40,0.06), 0 2px 4px rgba(16,24,40,0.05);
+    --shadow-lift: 0 12px 24px rgba(16,24,40,0.10), 0 4px 8px rgba(16,24,40,0.06);
+  }
+
+  .viz-root {
+    background: var(--surface-page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 0;
+  }
+  .viz-root * { box-sizing: border-box; }
+  .viz-root a { color: inherit; }
+
+  .hero {
+    background: linear-gradient(135deg, #eef4ff 0%, #f5f0ff 50%, #fff5ec 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; padding: 44px 24px 30px; }
+  .hero h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .hero p { color: var(--text-secondary); font-size: 14.5px; margin: 0; max-width: 760px; line-height: 1.6; }
+  .badge-row { display:flex; gap:8px; margin-top:16px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11.5px; font-weight: 650; padding: 5px 12px; border-radius: 100px;
+    background: var(--surface-1); box-shadow: var(--shadow-sm);
+  }
+  .badge.real { color: var(--status-good); }
+  .badge.sim { color: var(--series-2); }
+  .badge::before { content: "●"; margin-right: 5px; }
+
+  nav.tabs {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.tabs .tabs-inner {
+    max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; gap: 4px; overflow-x: auto;
+  }
+  nav.tabs a {
+    display: block; padding: 13px 14px; font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s;
+  }
+  nav.tabs a:hover { color: var(--text-primary); }
+  nav.tabs a.active { color: var(--series-1); border-bottom-color: var(--series-1); }
+
+  .content { max-width: 1180px; margin: 0 auto; }
+  section { padding: 40px 24px 8px; scroll-margin-top: 54px; }
+  section > h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+  section > .sub { color: var(--text-secondary); font-size: 13px; margin: 0 0 18px; line-height:1.6; max-width: 820px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--shadow-sm); transition: box-shadow .18s, transform .18s;
+  }
+  .tile:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+  .tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 550; }
+  .tile .value { font-size: 27px; font-weight: 700; letter-spacing: -0.01em; color: var(--series-1); }
+  .tile .foot { font-size: 11.5px; color: var(--text-muted); margin-top: 7px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .chart-card h3 { font-size: 13.5px; font-weight: 700; margin: 0 0 2px; }
+  .chart-card .cap { font-size: 11.5px; color: var(--text-muted); margin: 0 0 16px; }
+
+  .hbar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; padding: 3px 0; border-radius: 6px; transition: background .12s; }
+  .hbar-row:hover { background: var(--surface-tint); }
+  .hbar-label { width: 168px; flex: 0 0 168px; font-size: 11.5px; color: var(--text-secondary); text-align: right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hbar-track { flex: 1; position: relative; height: 16px; background: var(--surface-page); border-radius: 4px; }
+  .hbar-fill { height: 16px; border-radius: 4px; transition: filter .12s; }
+  .hbar-row:hover .hbar-fill { filter: brightness(1.08); }
+  .hbar-value { font-size: 11px; color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 8px; white-space:nowrap; width: 90px; }
+
+  .search-box {
+    display: flex; align-items: center; gap: 8px; background: var(--surface-page); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px; margin-bottom: 14px; max-width: 320px;
+  }
+  .search-box input {
+    border: none; background: transparent; outline: none; font-size: 13px; width: 100%; color: var(--text-primary);
+    font-family: inherit;
+  }
+  .search-box svg { flex-shrink: 0; color: var(--text-muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: left; font-weight: 650; color: var(--text-muted); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.04em; padding: 9px 12px; border-bottom: 1px solid var(--gridline); cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--text-primary); }
+  th .arrow { opacity: 0.35; margin-left: 3px; font-size: 9px; }
+  th.sorted .arrow { opacity: 1; color: var(--series-1); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gridline); color: var(--text-secondary); }
+  td.strong { color: var(--text-primary); font-weight: 600; }
+  tbody tr { transition: background .12s; }
+  tbody tr:hover { background: var(--surface-tint); }
+  tr:last-child td { border-bottom: none; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .pill { display:inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 100px; }
+  .pill.understock { background: #fdecea; color: var(--status-critical); }
+  .pill.overstock { background: #e8f1fc; color: var(--series-1); }
+
+  .table-scroll { overflow-x: auto; }
+
+  .assumptions { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: var(--shadow-sm); }
+  .assumptions ul { margin: 0; padding-left: 0; list-style: none; }
+  .assumptions li { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; padding-left: 26px; position: relative; }
+  .assumptions li:last-child { margin-bottom: 0; }
+  .assumptions li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--status-good); font-weight: 800; }
+  .assumptions li.sim::before { content: "⚙"; color: var(--series-2); }
+  .assumptions li strong { color: var(--text-primary); }
+
+  .flow { display:flex; align-items:stretch; gap: 10px; flex-wrap: wrap; }
+  .flow .step {
+    flex: 1; min-width: 150px; background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; font-size: 12px; color: var(--text-secondary);
+    box-shadow: var(--shadow-sm); transition: box-shadow .18s, transform .18s;
+  }
+  .flow .step:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+  .flow .step .t { font-size: 12.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+  .flow .arrow { display:flex; align-items:center; color: var(--text-muted); font-size: 16px; padding: 0 2px; }
+
+  .tooltip {
+    position: fixed; pointer-events: none; background: #16181d; color: #fff; font-size: 11.5px;
+    font-weight: 600; padding: 6px 10px; border-radius: 8px; box-shadow: var(--shadow-md);
+    opacity: 0; transition: opacity .1s; z-index: 100; white-space: nowrap;
+  }
+  .tooltip.show { opacity: 1; }
+
+  footer { padding: 28px 24px 48px; color: var(--text-muted); font-size: 11.5px; text-align: center; }
+  footer a { color: var(--series-1); text-decoration: none; }
+</style>
+
+<div class="viz-root">
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>📦 ReorderIQ — Multi-Node Inventory Control Tower</h1>
+      <p>Built on the Instacart Market Basket dataset (3.42M orders, 33.8M order-product rows, 206K users).
+        Instacart has no real store/DC topology, so a synthetic 18-store network is layered on top of genuine
+        demand and reorder behavior. Every metric below is labeled real or simulated — see "What's real vs.
+        simulated" for the full breakdown.</p>
+      <div class="badge-row">
+        <span class="badge real">Real: reorder model, association rules, demand history</span>
+        <span class="badge sim">Simulated: store topology, lead times, inventory levels</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <div class="tabs-inner" id="tabs-inner">
+      <a href="#overview" data-tab="overview" class="active">Overview</a>
+      <a href="#architecture" data-tab="architecture">Architecture</a>
+      <a href="#network" data-tab="network">Store Network</a>
+      <a href="#meio" data-tab="meio">MEIO</a>
+      <a href="#control-tower" data-tab="control-tower">Control Tower</a>
+      <a href="#rules" data-tab="rules">Basket Rules</a>
+      <a href="#assumptions" data-tab="assumptions">Real vs. Simulated</a>
+    </div>
+  </nav>
+
+  <div class="content">
+    <section id="overview">
+      <h2>Headline metrics</h2>
+      <p class="sub">The reorder model is the credibility anchor — scored against Kaggle's public leaderboard range.</p>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section id="architecture">
+      <h2>System architecture</h2>
+      <p class="sub">Five layers, each feeding the next. LangGraph/LLM orchestration was deliberately skipped for the control tower — every decision below is computable from data, so a rule-based orchestrator is faster, cheaper, and fully testable.</p>
+      <div class="flow">
+        <div class="step"><div class="t">1. Demand Sensing</div>Reorder-probability model per user × product, rolled up to store-level demand</div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="t">2. Hierarchical Rollup</div>SKU → department-DC → store → network, bottom-up reconciled</div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="t">3. MEIO</div>Two-echelon safety stock / reorder points, risk-pooled at the DC</div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="t">4. Basket / Substitution</div>Exact pairwise + FP-Growth association rules</div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="t">5. Control Tower</div>Exception detection + transfer &amp; substitute recommendations</div>
+      </div>
+    </section>
+
+    <section id="network">
+      <h2>Synthetic store network</h2>
+      <p class="sub">206,209 users clustered into 18 synthetic stores on department purchase-share + shopping cadence. Validated: 21/21 departments differ significantly across stores (Kruskal-Wallis, p&lt;0.01); pseudo-F 9,397.</p>
+      <div class="grid2">
+        <div class="chart-card">
+          <h3>Users per synthetic store</h3>
+          <p class="cap">Store size (proxy for store volume/footprint) — hover a bar for the exact count</p>
+          <div id="chart-stores"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Weekly demand by department (DC)</h3>
+          <p class="cap">Top 10 category-DCs by forecasted weekly network demand, top-3000 SKUs</p>
+          <div id="chart-depts"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="meio">
+      <h2>MEIO — risk pooling at the DC echelon</h2>
+      <p class="sub">Store lead time 1 day, DC lead time 3 days, 95% target service level (z=1.645). Pooling demand variance across stores at the department-DC echelon vs. every store buffering independently.</p>
+      <div class="chart-card">
+        <h3>Total network safety stock (units)</h3>
+        <div id="chart-pooling"></div>
+      </div>
+    </section>
+
+    <section id="control-tower">
+      <h2>Control tower exceptions</h2>
+      <p class="sub">Flagged where the ML reorder-demand signal's <em>share</em> of a store's total demand diverges &gt;1.5x / &lt;0.67x from its historical trailing-average share (min. 5 expected units) — a non-tautological check, since the ML model and the historical baseline are independent estimates. Click a column to sort, or search by product.</p>
+      <div class="chart-card table-scroll">
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="exceptions-search" placeholder="Search product or store...">
+        </div>
+        <table id="table-exceptions"></table>
+      </div>
+    </section>
+
+    <section id="rules">
+      <h2>Basket association rules</h2>
+      <p class="sub">The one layer that's 100% real data, no simulation: exact pairwise co-occurrence across all 33.8M order-product rows (415,479 pairs scored), plus a genuine FP-Growth run (mlxtend) on a 120K-order sample for multi-item itemsets.</p>
+      <div class="grid2">
+        <div class="chart-card table-scroll">
+          <h3>Top "frequently bought together" (by lift)</h3>
+          <table id="table-complements"></table>
+        </div>
+        <div class="chart-card table-scroll">
+          <h3>Top substitute candidates (same aisle, lift &lt; 0.8)</h3>
+          <table id="table-substitutes"></table>
+        </div>
+      </div>
+    </section>
+
+    <section id="assumptions">
+      <h2>What's real vs. simulated</h2>
+      <div class="assumptions">
+        <ul>
+          <li><strong>Real, unmodified:</strong> all 3.42M orders, 33.8M order-product rows, reorder labels, product/aisle/department taxonomy. The reorder model and association rules are trained/computed directly on this — no synthetic data anywhere in those two layers.</li>
+          <li class="sim"><strong>Simulated network topology:</strong> Instacart has no store or DC dimension. The 18 "stores" are K-means clusters of users on department purchase-share + cadence — a defensible proxy for store format/demographic mix, statistically validated (21/21 departments differ at p&lt;0.01), but not real geography or real store operations.</li>
+          <li class="sim"><strong>Simulated calendar:</strong> Instacart gives only <code>days_since_prior_order</code> (a gap), not real dates. Weekly buckets are reconstructed via cumulative sum per user, starting each user at day 0 — relative spacing is real, absolute calendar alignment across users is not.</li>
+          <li class="sim"><strong>Simulated lead times &amp; service level:</strong> 1-day store lead time, 3-day DC lead time, and a 95% target service level are modeling assumptions — Instacart provides no supplier or fulfillment lead-time data.</li>
+          <li class="sim"><strong>Inferred, not observed, inventory:</strong> there are no real stock levels anywhere in this dataset. "Inventory" here means demand-coverage targets (order-up-to levels) computed from forecasted demand and safety stock — not observed shelf or warehouse quantities.</li>
+          <li><strong>Held-out test set unusable:</strong> Kaggle's <code>eval_set='test'</code> orders have labels withheld. All validation here uses a 90/10 user-level split of the <code>train</code> eval set, so held-out orders are genuinely unseen by the model.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>ReorderIQ · Instacart Market Basket Analysis · DuckDB + scikit-learn + mlxtend pipeline, no external services</footer>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script id="dashboard-data" type="application/json">
+{
+  "reorder_model": {
+    "n_rows": 8474661,
+    "n_users": 131209,
+    "val_users": 13120,
+    "positive_rate": 0.09780025419305857,
+    "auc": 0.8308656298717693,
+    "threshold": 0.18000000000000002,
+    "mean_per_order_f1": 0.37057191941305156,
+    "pointwise_f1": 0.4269970323442662,
+    "kaggle_public_benchmark_range": [
+      0.38,
+      0.4
+    ],
+    "features": [
+      "up_order_count",
+      "up_avg_cart_position",
+      "up_reorder_rate",
+      "up_order_rate",
+      "up_orders_since_last",
+      "user_total_orders",
+      "user_avg_days_between_orders",
+      "user_avg_basket_size",
+      "user_reorder_ratio",
+      "user_distinct_products",
+      "product_total_orders",
+      "product_reorder_rate",
+      "product_avg_cart_position",
+      "product_distinct_users",
+      "department_id",
+      "aisle_id"
+    ]
+  },
+  "clustering": {
+    "n_stores": 18,
+    "n_departments_significant_at_p01": 21,
+    "n_departments_total": 21,
+    "pseudo_f_stat": 9397.12013331046,
+    "kruskal_wallis_by_department": {
+      "dept_share_1": {
+        "H": 52417.00017816381,
+        "p": 0.0
+      },
+      "dept_share_2": {
+        "H": 15470.193401634246,
+        "p": 0.0
+      },
+      "dept_share_3": {
+        "H": 25560.420306476855,
+        "p": 0.0
+      },
+      "dept_share_4": {
+        "H": 95070.26410897898,
+        "p": 0.0
+      },
+      "dept_share_5": {
+        "H": 27359.787353411968,
+        "p": 0.0
+      },
+      "dept_share_6": {
+        "H": 42291.05573166782,
+        "p": 0.0
+      },
+      "dept_share_7": {
+        "H": 28135.469058398096,
+        "p": 0.0
+      },
+      "dept_share_8": {
+        "H": 22101.14726006408,
+        "p": 0.0
+      },
+      "dept_share_9": {
+        "H": 48918.173935578314,
+        "p": 0.0
+      },
+      "dept_share_10": {
+        "H": 7474.623755554719,
+        "p": 0.0
+      },
+      "dept_share_11": {
+        "H": 17676.158089024335,
+        "p": 0.0
+      },
+      "dept_share_12": {
+        "H": 46490.91759526282,
+        "p": 0.0
+      },
+      "dept_share_13": {
+        "H": 24614.596035915696,
+        "p": 0.0
+      },
+      "dept_share_14": {
+        "H": 31342.84027140164,
+        "p": 0.0
+      },
+      "dept_share_15": {
+        "H": 55387.86759606363,
+        "p": 0.0
+      },
+      "dept_share_16": {
+        "H": 53253.29215829586,
+        "p": 0.0
+      },
+      "dept_share_17": {
+        "H": 20728.183872463607,
+        "p": 0.0
+      },
+      "dept_share_18": {
+        "H": 43875.64594844774,
+        "p": 0.0
+      },
+      "dept_share_19": {
+        "H": 32011.966159763662,
+        "p": 0.0
+      },
+      "dept_share_20": {
+        "H": 44505.476100338194,
+        "p": 0.0
+      },
+      "dept_share_21": {
+        "H": 28436.27845527137,
+        "p": 0.0
+      }
+    },
+    "cluster_summary": {
+      "0": {
+        "n_users": 35588,
+        "avg_basket_size": 17.14,
+        "avg_orders": 11.46,
+        "avg_days_between": 16.39
+      },
+      "1": {
+        "n_users": 7344,
+        "avg_basket_size": 4.67,
+        "avg_orders": 12.36,
+        "avg_days_between": 16.69
+      },
+      "2": {
+        "n_users": 17284,
+        "avg_basket_size": 9.19,
+        "avg_orders": 9.32,
+        "avg_days_between": 17.46
+      },
+      "3": {
+        "n_users": 8732,
+        "avg_basket_size": 7.65,
+        "avg_orders": 9.92,
+        "avg_days_between": 17.2
+      },
+      "4": {
+        "n_users": 1296,
+        "avg_basket_size": 8.89,
+        "avg_orders": 11.98,
+        "avg_days_between": 16.55
+      },
+      "5": {
+        "n_users": 24259,
+        "avg_basket_size": 7.96,
+        "avg_orders": 12.1,
+        "avg_days_between": 15.42
+      },
+      "6": {
+        "n_users": 7602,
+        "avg_basket_size": 6.45,
+        "avg_orders": 13.64,
+        "avg_days_between": 15.84
+      },
+      "7": {
+        "n_users": 6088,
+        "avg_basket_size": 9.22,
+        "avg_orders": 9.4,
+        "avg_days_between": 16.93
+      },
+      "8": {
+        "n_users": 798,
+        "avg_basket_size": 5.67,
+        "avg_orders": 9.78,
+        "avg_days_between": 16.6
+      },
+      "9": {
+        "n_users": 34637,
+        "avg_basket_size": 8.67,
+        "avg_orders": 12.12,
+        "avg_days_between": 15.27
+      },
+      "10": {
+        "n_users": 5402,
+        "avg_basket_size": 5.95,
+        "avg_orders": 9.98,
+        "avg_days_between": 18.52
+      },
+      "11": {
+        "n_users": 4274,
+        "avg_basket_size": 12.37,
+        "avg_orders": 16.51,
+        "avg_days_between": 14.11
+      },
+      "12": {
+        "n_users": 13715,
+        "avg_basket_size": 8.81,
+        "avg_orders": 10.79,
+        "avg_days_between": 16.28
+      },
+      "13": {
+        "n_users": 1844,
+        "avg_basket_size": 4.52,
+        "avg_orders": 12.38,
+        "avg_days_between": 14.79
+      },
+      "14": {
+        "n_users": 5087,
+        "avg_basket_size": 7.17,
+        "avg_orders": 11.13,
+        "avg_days_between": 16.86
+      },
+      "15": {
+        "n_users": 9521,
+        "avg_basket_size": 8.24,
+        "avg_orders": 10.87,
+        "avg_days_between": 16.47
+      },
+      "16": {
+        "n_users": 20295,
+        "avg_basket_size": 10.63,
+        "avg_orders": 53.92,
+        "avg_days_between": 6.51
+      },
+      "17": {
+        "n_users": 2443,
+        "avg_basket_size": 9.38,
+        "avg_orders": 8.72,
+        "avg_days_between": 12.92
+      }
+    },
+    "k_selection_silhouette_scores": {
+      "12": 0.05413373129737107,
+      "15": 0.06916497776177287,
+      "18": 0.07685447822363536,
+      "20": 0.07905764548388361
+    }
+  },
+  "meio": {
+    "service_level_target": 0.95,
+    "z": 1.644853626951472,
+    "store_lead_time_days": 1,
+    "dc_lead_time_days": 3,
+    "n_store_product_pairs": 51989,
+    "n_dc_product_pairs": 3000,
+    "total_safety_stock_units_no_pooling": 190831.64566572633,
+    "total_safety_stock_units_pooled_at_dc": 133325.10270428943,
+    "network_safety_stock_reduction_from_pooling_pct": 30.134699494322483,
+    "target_fill_rate_pct": 95.0
+  },
+  "control_tower": {
+    "total_store_sku_positions": 49256,
+    "n_exceptions": 2397,
+    "exception_rate_pct": 4.87,
+    "n_exceptions_with_transfer_recommendation": 1079,
+    "n_exceptions_with_substitute_recommendation": 821
+  },
+  "association": {
+    "pairwise_exact": {
+      "n_pairs_scored": 415479,
+      "n_substitution_candidates": 700
+    },
+    "fpgrowth_sample": {
+      "n_frequent_itemsets": 1475,
+      "n_multi_item_rules": 30,
+      "sample_orders": 106310
+    }
+  },
+  "store_sizes": [
+    {
+      "store_id": 0,
+      "n_users": 35588
+    },
+    {
+      "store_id": 1,
+      "n_users": 7344
+    },
+    {
+      "store_id": 2,
+      "n_users": 17284
+    },
+    {
+      "store_id": 3,
+      "n_users": 8732
+    },
+    {
+      "store_id": 4,
+      "n_users": 1296
+    },
+    {
+      "store_id": 5,
+      "n_users": 24259
+    },
+    {
+      "store_id": 6,
+      "n_users": 7602
+    },
+    {
+      "store_id": 7,
+      "n_users": 6088
+    },
+    {
+      "store_id": 8,
+      "n_users": 798
+    },
+    {
+      "store_id": 9,
+      "n_users": 34637
+    },
+    {
+      "store_id": 10,
+      "n_users": 5402
+    },
+    {
+      "store_id": 11,
+      "n_users": 4274
+    },
+    {
+      "store_id": 12,
+      "n_users": 13715
+    },
+    {
+      "store_id": 13,
+      "n_users": 1844
+    },
+    {
+      "store_id": 14,
+      "n_users": 5087
+    },
+    {
+      "store_id": 15,
+      "n_users": 9521
+    },
+    {
+      "store_id": 16,
+      "n_users": 20295
+    },
+    {
+      "store_id": 17,
+      "n_users": 2443
+    }
+  ],
+  "top_dept_by_store": {
+    "0": [
+      {
+        "department": "produce",
+        "share": 0.514
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.312
+      },
+      {
+        "department": "snacks",
+        "share": 0.174
+      }
+    ],
+    "1": [
+      {
+        "department": "beverages",
+        "share": 0.691
+      },
+      {
+        "department": "snacks",
+        "share": 0.157
+      },
+      {
+        "department": "produce",
+        "share": 0.153
+      }
+    ],
+    "2": [
+      {
+        "department": "produce",
+        "share": 0.498
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.272
+      },
+      {
+        "department": "pantry",
+        "share": 0.231
+      }
+    ],
+    "3": [
+      {
+        "department": "produce",
+        "share": 0.524
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.263
+      },
+      {
+        "department": "meat seafood",
+        "share": 0.213
+      }
+    ],
+    "4": [
+      {
+        "department": "pets",
+        "share": 0.494
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.257
+      },
+      {
+        "department": "produce",
+        "share": 0.249
+      }
+    ],
+    "5": [
+      {
+        "department": "dairy eggs",
+        "share": 0.483
+      },
+      {
+        "department": "produce",
+        "share": 0.368
+      },
+      {
+        "department": "beverages",
+        "share": 0.149
+      }
+    ],
+    "6": [
+      {
+        "department": "snacks",
+        "share": 0.585
+      },
+      {
+        "department": "beverages",
+        "share": 0.22
+      },
+      {
+        "department": "produce",
+        "share": 0.195
+      }
+    ],
+    "7": [
+      {
+        "department": "produce",
+        "share": 0.551
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.286
+      },
+      {
+        "department": "beverages",
+        "share": 0.163
+      }
+    ],
+    "8": [
+      {
+        "department": "produce",
+        "share": 0.435
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.309
+      },
+      {
+        "department": "beverages",
+        "share": 0.256
+      }
+    ],
+    "9": [
+      {
+        "department": "produce",
+        "share": 0.738
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.182
+      },
+      {
+        "department": "beverages",
+        "share": 0.08
+      }
+    ],
+    "10": [
+      {
+        "department": "household",
+        "share": 0.464
+      },
+      {
+        "department": "personal care",
+        "share": 0.276
+      },
+      {
+        "department": "beverages",
+        "share": 0.259
+      }
+    ],
+    "11": [
+      {
+        "department": "produce",
+        "share": 0.386
+      },
+      {
+        "department": "babies",
+        "share": 0.337
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.277
+      }
+    ],
+    "12": [
+      {
+        "department": "frozen",
+        "share": 0.471
+      },
+      {
+        "department": "produce",
+        "share": 0.287
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.241
+      }
+    ],
+    "13": [
+      {
+        "department": "alcohol",
+        "share": 0.689
+      },
+      {
+        "department": "beverages",
+        "share": 0.188
+      },
+      {
+        "department": "produce",
+        "share": 0.124
+      }
+    ],
+    "14": [
+      {
+        "department": "dairy eggs",
+        "share": 0.353
+      },
+      {
+        "department": "breakfast",
+        "share": 0.338
+      },
+      {
+        "department": "produce",
+        "share": 0.309
+      }
+    ],
+    "15": [
+      {
+        "department": "produce",
+        "share": 0.457
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.277
+      },
+      {
+        "department": "deli",
+        "share": 0.266
+      }
+    ],
+    "16": [
+      {
+        "department": "produce",
+        "share": 0.544
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.309
+      },
+      {
+        "department": "snacks",
+        "share": 0.147
+      }
+    ],
+    "17": [
+      {
+        "department": "produce",
+        "share": 0.498
+      },
+      {
+        "department": "dairy eggs",
+        "share": 0.312
+      },
+      {
+        "department": "beverages",
+        "share": 0.19
+      }
+    ]
+  },
+  "dc_dept_totals": [
+    {
+      "department": "produce",
+      "total_weekly_demand": 55339.32857142859,
+      "total_safety_stock": 51834.4304426418,
+      "avg_pooling_reduction": 0.26787680059731883
+    },
+    {
+      "department": "dairy eggs",
+      "total_weekly_demand": 31677.03333333333,
+      "total_safety_stock": 23554.890182245374,
+      "avg_pooling_reduction": 0.3249664504805293
+    },
+    {
+      "department": "snacks",
+      "total_weekly_demand": 14128.619047619046,
+      "total_safety_stock": 8997.408035300628,
+      "avg_pooling_reduction": 0.3341159573702986
+    },
+    {
+      "department": "beverages",
+      "total_weekly_demand": 13305.0761904762,
+      "total_safety_stock": 8930.698421367952,
+      "avg_pooling_reduction": 0.4078682149831952
+    },
+    {
+      "department": "frozen",
+      "total_weekly_demand": 10429.995238095242,
+      "total_safety_stock": 7987.408512502206,
+      "avg_pooling_reduction": 0.3117593305300124
+    },
+    {
+      "department": "pantry",
+      "total_weekly_demand": 7989.514285714286,
+      "total_safety_stock": 5741.641005436469,
+      "avg_pooling_reduction": 0.3518267519964194
+    },
+    {
+      "department": "bakery",
+      "total_weekly_demand": 6619.604761904764,
+      "total_safety_stock": 4679.854519189035,
+      "avg_pooling_reduction": 0.3157734912095898
+    },
+    {
+      "department": "deli",
+      "total_weekly_demand": 5533.942857142857,
+      "total_safety_stock": 4210.833410968813,
+      "avg_pooling_reduction": 0.3271066565607341
+    },
+    {
+      "department": "canned goods",
+      "total_weekly_demand": 4934.633333333334,
+      "total_safety_stock": 4066.2745176737026,
+      "avg_pooling_reduction": 0.28707151833788097
+    },
+    {
+      "department": "dry goods pasta",
+      "total_weekly_demand": 4010.7285714285717,
+      "total_safety_stock": 3616.0271152626146,
+      "avg_pooling_reduction": 0.19487619649285912
+    },
+    {
+      "department": "breakfast",
+      "total_weekly_demand": 3795.8714285714295,
+      "total_safety_stock": 2541.8713646240126,
+      "avg_pooling_reduction": 0.3377098015783812
+    },
+    {
+      "department": "meat seafood",
+      "total_weekly_demand": 3635.5190476190455,
+      "total_safety_stock": 3136.1501100194396,
+      "avg_pooling_reduction": 0.30490385805837217
+    },
+    {
+      "department": "household",
+      "total_weekly_demand": 2440.752380952382,
+      "total_safety_stock": 1531.0913138159829,
+      "avg_pooling_reduction": 0.386638397697875
+    },
+    {
+      "department": "babies",
+      "total_weekly_demand": 2159.6095238095236,
+      "total_safety_stock": 1204.6695979761544,
+      "avg_pooling_reduction": 0.12964178762285794
+    },
+    {
+      "department": "international",
+      "total_weekly_demand": 839.5714285714286,
+      "total_safety_stock": 514.2308606431353,
+      "avg_pooling_reduction": 0.3268381615095736
+    },
+    {
+      "department": "personal care",
+      "total_weekly_demand": 401.85714285714283,
+      "total_safety_stock": 227.14513020903445,
+      "avg_pooling_reduction": 0.3896406178659058
+    },
+    {
+      "department": "alcohol",
+      "total_weekly_demand": 298.91904761904766,
+      "total_safety_stock": 356.6379080109868,
+      "avg_pooling_reduction": 0.3618705495965932
+    },
+    {
+      "department": "bulk",
+      "total_weekly_demand": 212.07142857142856,
+      "total_safety_stock": 98.91092736827846,
+      "avg_pooling_reduction": 0.3076812798511435
+    },
+    {
+      "department": "missing",
+      "total_weekly_demand": 150.38095238095238,
+      "total_safety_stock": 74.40281577540514,
+      "avg_pooling_reduction": 0.19993432175785597
+    },
+    {
+      "department": "other",
+      "total_weekly_demand": 34.57142857142857,
+      "total_safety_stock": 20.526513258360062,
+      "avg_pooling_reduction": 0.3346962239832181
+    }
+  ],
+  "top_exceptions": [
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 1009.8,
+      "historical_baseline_demand": 346.4,
+      "ml_vs_baseline_ratio": 1.86,
+      "order_up_to_store": 236.1,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 838.9,
+      "historical_baseline_demand": 317.4,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 208.6,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 671.1,
+      "historical_baseline_demand": 267.8,
+      "ml_vs_baseline_ratio": 1.58,
+      "order_up_to_store": 168.5,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 545.4,
+      "historical_baseline_demand": 169.0,
+      "ml_vs_baseline_ratio": 2.06,
+      "order_up_to_store": 113.7,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 3,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 543.8,
+      "historical_baseline_demand": 202.6,
+      "ml_vs_baseline_ratio": 1.78,
+      "order_up_to_store": 137.5,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 464.7,
+      "historical_baseline_demand": 175.1,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 107.0,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 453.2,
+      "historical_baseline_demand": 163.8,
+      "ml_vs_baseline_ratio": 1.75,
+      "order_up_to_store": 97.1,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 21903,
+      "product_name": "Organic Baby Spinach",
+      "direction": "understock_risk",
+      "ml_expected_demand": 446.5,
+      "historical_baseline_demand": 166.0,
+      "ml_vs_baseline_ratio": 1.72,
+      "order_up_to_store": 114.4,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 555.5
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 48205,
+          "product_name": "Spinach",
+          "lift": 0.09
+        },
+        {
+          "product_id": 25931,
+          "product_name": "Organic Baby Spinach Salad",
+          "lift": 0.14
+        },
+        {
+          "product_id": 36070,
+          "product_name": "Super Spinach! Baby Spinach, Baby Bok Choy, Sweet Baby Kale",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47626,
+      "product_name": "Large Lemon",
+      "direction": "understock_risk",
+      "ml_expected_demand": 419.7,
+      "historical_baseline_demand": 162.5,
+      "ml_vs_baseline_ratio": 1.65,
+      "order_up_to_store": 102.1,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 300.4
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 5876,
+          "product_name": "Organic Lemon",
+          "lift": 0.07
+        },
+        {
+          "product_id": 10326,
+          "product_name": "Organic Fuji Apples",
+          "lift": 0.19
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.28
+        }
+      ]
+    },
+    {
+      "store_id": 11,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 386.4,
+      "historical_baseline_demand": 208.3,
+      "ml_vs_baseline_ratio": 1.55,
+      "order_up_to_store": 132.0,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 1,
+      "department_id": 7,
+      "product_id": 196,
+      "product_name": "Soda",
+      "direction": "understock_risk",
+      "ml_expected_demand": 367.5,
+      "historical_baseline_demand": 168.8,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 117.0,
+      "recommended_transfer": {
+        "donor_store_id": 6,
+        "surplus_units": 51.1
+      },
+      "substitute_recommendations": []
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47766,
+      "product_name": "Organic Avocado",
+      "direction": "understock_risk",
+      "ml_expected_demand": 357.1,
+      "historical_baseline_demand": 136.0,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 103.9,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 435.6
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 5450,
+          "product_name": "Small Hass Avocado",
+          "lift": 0.05
+        },
+        {
+          "product_id": 47209,
+          "product_name": "Organic Hass Avocado",
+          "lift": 0.08
+        },
+        {
+          "product_id": 29223,
+          "product_name": "Golden Pineapple",
+          "lift": 0.26
+        }
+      ]
+    },
+    {
+      "store_id": 7,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 335.6,
+      "historical_baseline_demand": 110.8,
+      "ml_vs_baseline_ratio": 2.32,
+      "order_up_to_store": 84.7,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 3,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 323.2,
+      "historical_baseline_demand": 107.0,
+      "ml_vs_baseline_ratio": 2.01,
+      "order_up_to_store": 68.4,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 6,
+      "department_id": 4,
+      "product_id": 13176,
+      "product_name": "Bag of Organic Bananas",
+      "direction": "understock_risk",
+      "ml_expected_demand": 315.8,
+      "historical_baseline_demand": 163.6,
+      "ml_vs_baseline_ratio": 1.54,
+      "order_up_to_store": 106.6,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 646.9
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 24852,
+          "product_name": "Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.07
+        },
+        {
+          "product_id": 48527,
+          "product_name": "Avocado",
+          "lift": 0.21
+        }
+      ]
+    },
+    {
+      "store_id": 6,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 296.1,
+      "historical_baseline_demand": 156.8,
+      "ml_vs_baseline_ratio": 1.51,
+      "order_up_to_store": 100.9,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 14,
+      "department_id": 4,
+      "product_id": 24852,
+      "product_name": "Banana",
+      "direction": "understock_risk",
+      "ml_expected_demand": 290.4,
+      "historical_baseline_demand": 121.6,
+      "ml_vs_baseline_ratio": 1.91,
+      "order_up_to_store": 82.6,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 959.2
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 13176,
+          "product_name": "Bag of Organic Bananas",
+          "lift": 0.02
+        },
+        {
+          "product_id": 37067,
+          "product_name": "Organic Banana",
+          "lift": 0.02
+        },
+        {
+          "product_id": 17313,
+          "product_name": "Hass Avocado Variety",
+          "lift": 0.15
+        }
+      ]
+    },
+    {
+      "store_id": 15,
+      "department_id": 4,
+      "product_id": 21137,
+      "product_name": "Organic Strawberries",
+      "direction": "understock_risk",
+      "ml_expected_demand": 290.4,
+      "historical_baseline_demand": 116.6,
+      "ml_vs_baseline_ratio": 1.57,
+      "order_up_to_store": 82.4,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 533.8
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 16797,
+          "product_name": "Strawberries",
+          "lift": 0.11
+        },
+        {
+          "product_id": 39276,
+          "product_name": "Bananas",
+          "lift": 0.13
+        },
+        {
+          "product_id": 19604,
+          "product_name": "Medium Scarlet Raspberries",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 2,
+      "department_id": 4,
+      "product_id": 47209,
+      "product_name": "Organic Hass Avocado",
+      "direction": "understock_risk",
+      "ml_expected_demand": 285.7,
+      "historical_baseline_demand": 108.6,
+      "ml_vs_baseline_ratio": 1.68,
+      "order_up_to_store": 78.0,
+      "recommended_transfer": {
+        "donor_store_id": 0,
+        "surplus_units": 369.3
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 47766,
+          "product_name": "Organic Avocado",
+          "lift": 0.08
+        },
+        {
+          "product_id": 5450,
+          "product_name": "Small Hass Avocado",
+          "lift": 0.12
+        },
+        {
+          "product_id": 23322,
+          "product_name": "Golden Delicious Apple",
+          "lift": 0.16
+        }
+      ]
+    },
+    {
+      "store_id": 12,
+      "department_id": 4,
+      "product_id": 21903,
+      "product_name": "Organic Baby Spinach",
+      "direction": "understock_risk",
+      "ml_expected_demand": 284.1,
+      "historical_baseline_demand": 112.1,
+      "ml_vs_baseline_ratio": 1.61,
+      "order_up_to_store": 73.5,
+      "recommended_transfer": {
+        "donor_store_id": 9,
+        "surplus_units": 555.5
+      },
+      "substitute_recommendations": [
+        {
+          "product_id": 48205,
+          "product_name": "Spinach",
+          "lift": 0.09
+        },
+        {
+          "product_id": 25931,
+          "product_name": "Organic Baby Spinach Salad",
+          "lift": 0.14
+        },
+        {
+          "product_id": 36070,
+          "product_name": "Super Spinach! Baby Spinach, Baby Bok Choy, Sweet Baby Kale",
+          "lift": 0.16
+        }
+      ]
+    }
+  ],
+  "top_complement_rules": [
+    {
+      "name_a": "Coconut  Chocolate Bar",
+      "name_b": "Chocolate Sea Salt",
+      "n_together": 1461,
+      "support": 0.00044,
+      "lift": 329.06,
+      "conf_a_to_b": 0.452
+    },
+    {
+      "name_a": "Almond Milk Blueberry Yogurt",
+      "name_b": "Almond Milk Peach Yogurt",
+      "n_together": 2338,
+      "support": 0.0007,
+      "lift": 328.24,
+      "conf_a_to_b": 0.477
+    },
+    {
+      "name_a": "Almond Milk Blueberry Yogurt",
+      "name_b": "Almond Milk Strawberry Yogurt",
+      "n_together": 2782,
+      "support": 0.00083,
+      "lift": 321.86,
+      "conf_a_to_b": 0.568
+    },
+    {
+      "name_a": "Unsweetened Blackberry Water",
+      "name_b": "Unsweetened Watermelon Water",
+      "n_together": 1311,
+      "support": 0.00039,
+      "lift": 319.69,
+      "conf_a_to_b": 0.409
+    },
+    {
+      "name_a": "Coconut Chia Bar",
+      "name_b": "Acai Berry Chia Bar",
+      "n_together": 1382,
+      "support": 0.00041,
+      "lift": 318.59,
+      "conf_a_to_b": 0.286
+    },
+    {
+      "name_a": "Stage 1 Apples & Strawberries Organic Pureed Baby Food",
+      "name_b": "Organic Stage 2 Peaches & Bananas Baby Food",
+      "n_together": 1072,
+      "support": 0.00032,
+      "lift": 313.69,
+      "conf_a_to_b": 0.325
+    },
+    {
+      "name_a": "Almond Milk Strawberry Yogurt",
+      "name_b": "Almond Milk Peach Yogurt",
+      "n_together": 2534,
+      "support": 0.00076,
+      "lift": 294.98,
+      "conf_a_to_b": 0.429
+    },
+    {
+      "name_a": "Coconut Chia Bar",
+      "name_b": "Chocolate Peanut Butter",
+      "n_together": 1935,
+      "support": 0.00058,
+      "lift": 277.08,
+      "conf_a_to_b": 0.401
+    },
+    {
+      "name_a": "Non-Fat Blueberry on the Bottom Greek Yogurt",
+      "name_b": "Non-Fat Greek Yogurt With Strawberries on the Bottom",
+      "n_together": 1277,
+      "support": 0.00038,
+      "lift": 276.75,
+      "conf_a_to_b": 0.402
+    },
+    {
+      "name_a": "Stage 1 Apples Sweet Potatoes Pumpkin & Blueberries Organic Pureed Baby Food",
+      "name_b": "Organic 4 Months Butternut Squash Carrots Apples + Prunes Baby Food",
+      "n_together": 1575,
+      "support": 0.00047,
+      "lift": 275.93,
+      "conf_a_to_b": 0.275
+    },
+    {
+      "name_a": "Acai Berry Chia Bar",
+      "name_b": "Chocolate Peanut Butter",
+      "n_together": 1141,
+      "support": 0.00034,
+      "lift": 262.27,
+      "conf_a_to_b": 0.379
+    },
+    {
+      "name_a": "Organic 4 Months Butternut Squash Carrots Apples + Prunes Baby Food",
+      "name_b": "Organic Pears, Peas and Broccoli Puree Stage 1",
+      "n_together": 1285,
+      "support": 0.00038,
+      "lift": 250.44,
+      "conf_a_to_b": 0.385
+    },
+    {
+      "name_a": "Organic Lemon Lowfat Yogurt",
+      "name_b": "Lowfat Key Lime Yogurt",
+      "n_together": 1213,
+      "support": 0.00036,
+      "lift": 244.72,
+      "conf_a_to_b": 0.297
+    },
+    {
+      "name_a": "Yotoddler Organic Pear Spinach Mango Yogurt",
+      "name_b": "Organic Whole Milk Strawberry Beet Berry Yogurt Pouch",
+      "n_together": 2883,
+      "support": 0.00086,
+      "lift": 237.01,
+      "conf_a_to_b": 0.462
+    },
+    {
+      "name_a": "YoKids Squeeze Organic Blueberry Blue Yogurt",
+      "name_b": "YoKids Squeeze! Organic Strawberry Flavor Yogurt",
+      "n_together": 1719,
+      "support": 0.00051,
+      "lift": 232.88,
+      "conf_a_to_b": 0.487
+    }
+  ],
+  "top_substitute_rules": [
+    {
+      "name_a": "Strawberries",
+      "name_b": "Organic Hass Avocado",
+      "aisle_a": 24,
+      "n_together": 7862,
+      "lift": 0.8
+    },
+    {
+      "name_a": "Granny Smith Apples",
+      "name_b": "Bag of Organic Bananas",
+      "aisle_a": 24,
+      "n_together": 3453,
+      "lift": 0.78
+    },
+    {
+      "name_a": "Organic Lemon",
+      "name_b": "Strawberries",
+      "aisle_a": 24,
+      "n_together": 2778,
+      "lift": 0.68
+    },
+    {
+      "name_a": "Organic Fuji Apple",
+      "name_b": "Organic Gala Apples",
+      "aisle_a": 24,
+      "n_together": 1659,
+      "lift": 0.79
+    },
+    {
+      "name_a": "Apple Honeycrisp Organic",
+      "name_b": "Organic Fuji Apple",
+      "aisle_a": 24,
+      "n_together": 1578,
+      "lift": 0.65
+    },
+    {
+      "name_a": "Organic Strawberries",
+      "name_b": "Gala Apples",
+      "aisle_a": 24,
+      "n_together": 1558,
+      "lift": 0.76
+    },
+    {
+      "name_a": "Granny Smith Apples",
+      "name_b": "Organic Hass Avocado",
+      "aisle_a": 24,
+      "n_together": 1428,
+      "lift": 0.58
+    },
+    {
+      "name_a": "Strawberries",
+      "name_b": "Organic Strawberries",
+      "aisle_a": 24,
+      "n_together": 1415,
+      "lift": 0.11
+    },
+    {
+      "name_a": "Organic Gala Apples",
+      "name_b": "Honeycrisp Apple",
+      "aisle_a": 24,
+      "n_together": 1291,
+      "lift": 0.69
+    },
+    {
+      "name_a": "Organic Large Extra Fancy Fuji Apple",
+      "name_b": "Honeycrisp Apple",
+      "aisle_a": 24,
+      "n_together": 1209,
+      "lift": 0.62
+    },
+    {
+      "name_a": "Bag of Organic Bananas",
+      "name_b": "Banana",
+      "aisle_a": 24,
+      "n_together": 1204,
+      "lift": 0.02
+    },
+    {
+      "name_a": "Fat Free Milk",
+      "name_b": "Organic Whole Milk",
+      "aisle_a": 84,
+      "n_together": 1035,
+      "lift": 0.79
+    },
+    {
+      "name_a": "Spring Water",
+      "name_b": "Sparkling Water Grapefruit",
+      "aisle_a": 115,
+      "n_together": 963,
+      "lift": 0.7
+    },
+    {
+      "name_a": "Organic Hass Avocado",
+      "name_b": "Organic Avocado",
+      "aisle_a": 24,
+      "n_together": 941,
+      "lift": 0.08
+    },
+    {
+      "name_a": "Lime",
+      "name_b": "Bag of Organic Bananas",
+      "aisle_a": 24,
+      "n_together": 914,
+      "lift": 0.7
+    }
+  ],
+  "fpgrowth_rules": [
+    {
+      "antecedents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "consequents": "Non Fat Raspberry Yogurt",
+      "support": 0.0043551876587338,
+      "confidence": 0.411190053285968,
+      "lift": 42.98290517682523
+    },
+    {
+      "antecedents": "Non Fat Raspberry Yogurt",
+      "consequents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "support": 0.0043551876587338,
+      "confidence": 0.455260570304818,
+      "lift": 42.98290517682523
+    },
+    {
+      "antecedents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "consequents": "Vanilla Skyr Nonfat Yogurt",
+      "support": 0.0038754585645752,
+      "confidence": 0.3658969804618118,
+      "lift": 36.31980204752121
+    },
+    {
+      "antecedents": "Vanilla Skyr Nonfat Yogurt",
+      "consequents": "Icelandic Style Skyr Blueberry Non-fat Yogurt",
+      "support": 0.0038754585645752,
+      "confidence": 0.38468720821662,
+      "lift": 36.3198020475212
+    },
+    {
+      "antecedents": "Vanilla Skyr Nonfat Yogurt",
+      "consequents": "Non Fat Raspberry Yogurt",
+      "support": 0.0031323487912708,
+      "confidence": 0.3109243697478991,
+      "lift": 32.501838493509496
+    },
+    {
+      "antecedents": "Non Fat Raspberry Yogurt",
+      "consequents": "Vanilla Skyr Nonfat Yogurt",
+      "support": 0.0031323487912708,
+      "confidence": 0.3274336283185841,
+      "lift": 32.501838493509496
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0038096133947888,
+      "confidence": 0.3355426677713339,
+      "lift": 27.71681508218377
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "support": 0.0038096133947888,
+      "confidence": 0.3146853146853147,
+      "lift": 27.71681508218377
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0055686200733703,
+      "confidence": 0.4599844599844601,
+      "lift": 27.65890720641853
+    },
+    {
+      "antecedents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0055686200733703,
+      "confidence": 0.334841628959276,
+      "lift": 27.65890720641852
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "consequents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "support": 0.0032734455836703,
+      "confidence": 0.2703962703962704,
+      "lift": 26.275893515381632
+    },
+    {
+      "antecedents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt With Blueberry",
+      "support": 0.0032734455836703,
+      "confidence": 0.3180987202925045,
+      "lift": 26.27589351538163
+    },
+    {
+      "antecedents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "consequents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "support": 0.0049477941868121,
+      "confidence": 0.2975113122171946,
+      "lift": 26.20416537018224
+    },
+    {
+      "antecedents": "Total 2% Lowfat Greek Strained Yogurt with Peach",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0049477941868121,
+      "confidence": 0.435791217895609,
+      "lift": 26.20416537018224
+    },
+    {
+      "antecedents": "Total 2% Greek Strained Yogurt with Cherry 5.3 oz",
+      "consequents": "Total 2% with Strawberry Lowfat Greek Strained Yogurt",
+      "support": 0.0033016649421503,
+      "confidence": 0.3208409506398537,
+      "lift": 19.29219539735455
+    }
+  ]
+}
+</script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById('dashboard-data').textContent);
+  const fmt = (n, d = 0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
+  const pct = (n, d = 1) => fmt(n, d) + '%';
+  const tooltip = document.getElementById('tooltip');
+
+  function showTooltip(e, text) {
+    tooltip.textContent = text;
+    tooltip.classList.add('show');
+    moveTooltip(e);
+  }
+  function moveTooltip(e) {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY + 14) + 'px';
+  }
+  function hideTooltip() { tooltip.classList.remove('show'); }
+
+  // ---- Tab nav: smooth scroll + active-state on scroll ----
+  (function () {
+    const links = Array.from(document.querySelectorAll('nav.tabs a'));
+    const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+    links.forEach(l => l.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(l.getAttribute('href')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = sections.indexOf(entry.target);
+          links.forEach(l => l.classList.remove('active'));
+          if (idx >= 0) links[idx].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach(s => s && io.observe(s));
+  })();
+
+  // ---- Stat tiles ----
+  const rm = data.reorder_model, cl = data.clustering, me = data.meio, ct = data.control_tower, as = data.association;
+  const tiles = [
+    { label: 'Mean per-order F1 (reorder model)', value: fmt(rm.mean_per_order_f1, 4), foot: `Kaggle public benchmark: ${rm.kaggle_public_benchmark_range[0]}–${rm.kaggle_public_benchmark_range[1]}` },
+    { label: 'Validation AUC', value: fmt(rm.auc, 3), foot: `${fmt(rm.n_rows)} candidate rows, ${fmt(rm.n_users)} users` },
+    { label: 'Synthetic stores', value: cl.n_stores, foot: `${cl.n_departments_significant_at_p01}/${cl.n_departments_total} departments differ, p<0.01` },
+    { label: 'Safety stock reduction from pooling', value: pct(me.network_safety_stock_reduction_from_pooling_pct), foot: `${fmt(me.total_safety_stock_units_no_pooling)} → ${fmt(me.total_safety_stock_units_pooled_at_dc)} units` },
+    { label: 'Control tower exception rate', value: pct(ct.exception_rate_pct), foot: `${fmt(ct.n_exceptions)} of ${fmt(ct.total_store_sku_positions)} store-SKU positions` },
+    { label: 'Association pairs scored (exact)', value: fmt(as.pairwise_exact.n_pairs_scored), foot: `${fmt(as.pairwise_exact.n_substitution_candidates)} substitute candidates found` },
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile">
+      <div class="label">${t.label}</div>
+      <div class="value">${t.value}</div>
+      <div class="foot">${t.foot}</div>
+    </div>`).join('');
+
+  // ---- Horizontal bar chart helper (with hover tooltip) ----
+  function hbarChart(el, rows, { labelKey, valueKey, color, valueFmt, tooltipFmt }) {
+    const max = Math.max(...rows.map(r => r[valueKey]));
+    el.innerHTML = rows.map(r => {
+      const w = Math.max(2, (r[valueKey] / max) * 100);
+      return `<div class="hbar-row" data-tip="${(tooltipFmt || valueFmt)(r[valueKey])}">
+        <div class="hbar-label" title="${r[labelKey]}">${r[labelKey]}</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${w}%; background:${color};"></div></div>
+        <div class="hbar-value">${valueFmt(r[valueKey])}</div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.hbar-row').forEach(row => {
+      row.addEventListener('mousemove', e => showTooltip(e, row.dataset.tip));
+      row.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  const rootStyle = getComputedStyle(document.querySelector('.viz-root'));
+  const c1 = rootStyle.getPropertyValue('--series-1').trim();
+  const c3 = rootStyle.getPropertyValue('--series-3').trim();
+  const c2 = rootStyle.getPropertyValue('--series-2').trim();
+
+  hbarChart(document.getElementById('chart-stores'),
+    data.store_sizes.map(s => ({ label: 'Store ' + s.store_id, n: s.n_users })),
+    { labelKey: 'label', valueKey: 'n', color: c1, valueFmt: v => fmt(v) + ' users' });
+
+  const deptRows = data.dc_dept_totals.slice(0, 10).map(d => ({ label: d.department, n: d.total_weekly_demand }));
+  hbarChart(document.getElementById('chart-depts'), deptRows,
+    { labelKey: 'label', valueKey: 'n', color: c3, valueFmt: v => fmt(v) + ' units/wk' });
+
+  // ---- Pooling comparison (2-series bar) ----
+  (function () {
+    const rows = [
+      { label: 'No pooling (sum of stores)', n: me.total_safety_stock_units_no_pooling, color: c2 },
+      { label: 'Pooled at DC', n: me.total_safety_stock_units_pooled_at_dc, color: c1 },
+    ];
+    const max = Math.max(...rows.map(r => r.n));
+    document.getElementById('chart-pooling').innerHTML = rows.map(r => {
+      const w = Math.max(2, (r.n / max) * 100);
+      return `<div class="hbar-row" data-tip="${fmt(r.n)} units">
+        <div class="hbar-label">${r.label}</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${w}%; background:${r.color};"></div></div>
+        <div class="hbar-value">${fmt(r.n)} units</div>
+      </div>`;
+    }).join('');
+    document.querySelectorAll('#chart-pooling .hbar-row').forEach(row => {
+      row.addEventListener('mousemove', e => showTooltip(e, row.dataset.tip));
+      row.addEventListener('mouseleave', hideTooltip);
+    });
+  })();
+
+  // ---- Sortable + searchable table helper ----
+  function buildTable(el, columns, rows, opts = {}) {
+    let sortKey = opts.defaultSort || columns[0].key;
+    let sortDir = opts.defaultDir || 'desc';
+    let filterText = '';
+
+    function render() {
+      let data = rows;
+      if (filterText) {
+        const f = filterText.toLowerCase();
+        data = data.filter(r => (opts.searchKeys || []).some(k => String(r[k] || '').toLowerCase().includes(f)));
+      }
+      data = [...data].sort((a, b) => {
+        const av = a[sortKey], bv = b[sortKey];
+        const cmp = typeof av === 'string' ? av.localeCompare(bv) : (av - bv);
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+      const head = '<tr>' + columns.map(c => `
+        <th data-key="${c.key}" class="${c.key === sortKey ? 'sorted' : ''} ${c.num ? 'num' : ''}">
+          ${c.label}<span class="arrow">${c.key === sortKey ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span>
+        </th>`).join('') + '</tr>';
+      const body = data.map(r => '<tr>' + columns.map(c => `<td class="${c.num ? 'num' : ''} ${c.strong ? 'strong' : ''}">${c.render ? c.render(r) : r[c.key]}</td>`).join('') + '</tr>').join('');
+      el.innerHTML = head + body;
+      el.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
+        const key = th.dataset.key;
+        if (key === sortKey) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        else { sortKey = key; sortDir = 'desc'; }
+        render();
+      }));
+    }
+    render();
+    return { setFilter(text) { filterText = text; render(); } };
+  }
+
+  // ---- Exceptions table ----
+  const exceptionsTable = buildTable(document.getElementById('table-exceptions'), [
+    { key: 'store_id', label: 'Store', strong: true },
+    { key: 'product_name', label: 'Product', strong: true },
+    { key: 'direction', label: 'Direction', render: r => `<span class="pill ${r.direction === 'understock_risk' ? 'understock' : 'overstock'}">${r.direction.replace('_', ' ')}</span>` },
+    { key: 'ml_expected_demand', label: 'ML demand', num: true, render: r => fmt(r.ml_expected_demand, 1) },
+    { key: 'historical_baseline_demand', label: 'Baseline', num: true, render: r => fmt(r.historical_baseline_demand, 1) },
+    { key: 'ml_vs_baseline_ratio', label: 'Ratio', num: true, render: r => fmt(r.ml_vs_baseline_ratio, 2) + 'x' },
+    { key: 'transfer_label', label: 'Transfer from', render: r => r.recommended_transfer ? 'Store ' + r.recommended_transfer.donor_store_id + ' (' + fmt(r.recommended_transfer.surplus_units, 0) + ' surplus)' : '—' },
+    { key: 'sub_label', label: 'Substitute', render: r => r.substitute_recommendations.length ? r.substitute_recommendations[0].product_name : '—' },
+  ], data.top_exceptions.map(r => ({
+    ...r,
+    transfer_label: r.recommended_transfer ? r.recommended_transfer.donor_store_id : -1,
+    sub_label: r.substitute_recommendations.length ? r.substitute_recommendations[0].product_name : '',
+  })), { defaultSort: 'ml_expected_demand', defaultDir: 'desc', searchKeys: ['product_name', 'store_id'] });
+
+  document.getElementById('exceptions-search').addEventListener('input', e => exceptionsTable.setFilter(e.target.value));
+
+  // ---- Complement / substitute tables ----
+  buildTable(document.getElementById('table-complements'), [
+    { key: 'name_a', label: 'Product A', strong: true },
+    { key: 'name_b', label: 'Product B' },
+    { key: 'lift', label: 'Lift', num: true, render: r => fmt(r.lift, 1) + 'x' },
+    { key: 'conf_a_to_b', label: 'Confidence', num: true, render: r => pct(r.conf_a_to_b * 100) },
+  ], data.top_complement_rules, { defaultSort: 'lift', defaultDir: 'desc' });
+
+  buildTable(document.getElementById('table-substitutes'), [
+    { key: 'name_a', label: 'Product A', strong: true },
+    { key: 'name_b', label: 'Product B' },
+    { key: 'n_together', label: 'Co-purchases', num: true, render: r => fmt(r.n_together) },
+    { key: 'lift', label: 'Lift', num: true, render: r => fmt(r.lift, 2) + 'x' },
+  ], data.top_substitute_rules, { defaultSort: 'n_together', defaultDir: 'desc' });
+})();
+</script>

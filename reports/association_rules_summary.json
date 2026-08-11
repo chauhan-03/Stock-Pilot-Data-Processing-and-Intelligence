@@ -1,0 +1,11 @@
+{
+  "pairwise_exact": {
+    "n_pairs_scored": 415479,
+    "n_substitution_candidates": 700
+  },
+  "fpgrowth_sample": {
+    "n_frequent_itemsets": 1475,
+    "n_multi_item_rules": 30,
+    "sample_orders": 106310
+  }
+}

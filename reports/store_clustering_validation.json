@@ -1,0 +1,208 @@
+{
+  "n_stores": 18,
+  "n_departments_significant_at_p01": 21,
+  "n_departments_total": 21,
+  "pseudo_f_stat": 9397.12013331046,
+  "kruskal_wallis_by_department": {
+    "dept_share_1": {
+      "H": 52417.00017816381,
+      "p": 0.0
+    },
+    "dept_share_2": {
+      "H": 15470.193401634246,
+      "p": 0.0
+    },
+    "dept_share_3": {
+      "H": 25560.420306476855,
+      "p": 0.0
+    },
+    "dept_share_4": {
+      "H": 95070.26410897898,
+      "p": 0.0
+    },
+    "dept_share_5": {
+      "H": 27359.787353411968,
+      "p": 0.0
+    },
+    "dept_share_6": {
+      "H": 42291.05573166782,
+      "p": 0.0
+    },
+    "dept_share_7": {
+      "H": 28135.469058398096,
+      "p": 0.0
+    },
+    "dept_share_8": {
+      "H": 22101.14726006408,
+      "p": 0.0
+    },
+    "dept_share_9": {
+      "H": 48918.173935578314,
+      "p": 0.0
+    },
+    "dept_share_10": {
+      "H": 7474.623755554719,
+      "p": 0.0
+    },
+    "dept_share_11": {
+      "H": 17676.158089024335,
+      "p": 0.0
+    },
+    "dept_share_12": {
+      "H": 46490.91759526282,
+      "p": 0.0
+    },
+    "dept_share_13": {
+      "H": 24614.596035915696,
+      "p": 0.0
+    },
+    "dept_share_14": {
+      "H": 31342.84027140164,
+      "p": 0.0
+    },
+    "dept_share_15": {
+      "H": 55387.86759606363,
+      "p": 0.0
+    },
+    "dept_share_16": {
+      "H": 53253.29215829586,
+      "p": 0.0
+    },
+    "dept_share_17": {
+      "H": 20728.183872463607,
+      "p": 0.0
+    },
+    "dept_share_18": {
+      "H": 43875.64594844774,
+      "p": 0.0
+    },
+    "dept_share_19": {
+      "H": 32011.966159763662,
+      "p": 0.0
+    },
+    "dept_share_20": {
+      "H": 44505.476100338194,
+      "p": 0.0
+    },
+    "dept_share_21": {
+      "H": 28436.27845527137,
+      "p": 0.0
+    }
+  },
+  "cluster_summary": {
+    "0": {
+      "n_users": 35588,
+      "avg_basket_size": 17.14,
+      "avg_orders": 11.46,
+      "avg_days_between": 16.39
+    },
+    "1": {
+      "n_users": 7344,
+      "avg_basket_size": 4.67,
+      "avg_orders": 12.36,
+      "avg_days_between": 16.69
+    },
+    "2": {
+      "n_users": 17284,
+      "avg_basket_size": 9.19,
+      "avg_orders": 9.32,
+      "avg_days_between": 17.46
+    },
+    "3": {
+      "n_users": 8732,
+      "avg_basket_size": 7.65,
+      "avg_orders": 9.92,
+      "avg_days_between": 17.2
+    },
+    "4": {
+      "n_users": 1296,
+      "avg_basket_size": 8.89,
+      "avg_orders": 11.98,
+      "avg_days_between": 16.55
+    },
+    "5": {
+      "n_users": 24259,
+      "avg_basket_size": 7.96,
+      "avg_orders": 12.1,
+      "avg_days_between": 15.42
+    },
+    "6": {
+      "n_users": 7602,
+      "avg_basket_size": 6.45,
+      "avg_orders": 13.64,
+      "avg_days_between": 15.84
+    },
+    "7": {
+      "n_users": 6088,
+      "avg_basket_size": 9.22,
+      "avg_orders": 9.4,
+      "avg_days_between": 16.93
+    },
+    "8": {
+      "n_users": 798,
+      "avg_basket_size": 5.67,
+      "avg_orders": 9.78,
+      "avg_days_between": 16.6
+    },
+    "9": {
+      "n_users": 34637,
+      "avg_basket_size": 8.67,
+      "avg_orders": 12.12,
+      "avg_days_between": 15.27
+    },
+    "10": {
+      "n_users": 5402,
+      "avg_basket_size": 5.95,
+      "avg_orders": 9.98,
+      "avg_days_between": 18.52
+    },
+    "11": {
+      "n_users": 4274,
+      "avg_basket_size": 12.37,
+      "avg_orders": 16.51,
+      "avg_days_between": 14.11
+    },
+    "12": {
+      "n_users": 13715,
+      "avg_basket_size": 8.81,
+      "avg_orders": 10.79,
+      "avg_days_between": 16.28
+    },
+    "13": {
+      "n_users": 1844,
+      "avg_basket_size": 4.52,
+      "avg_orders": 12.38,
+      "avg_days_between": 14.79
+    },
+    "14": {
+      "n_users": 5087,
+      "avg_basket_size": 7.17,
+      "avg_orders": 11.13,
+      "avg_days_between": 16.86
+    },
+    "15": {
+      "n_users": 9521,
+      "avg_basket_size": 8.24,
+      "avg_orders": 10.87,
+      "avg_days_between": 16.47
+    },
+    "16": {
+      "n_users": 20295,
+      "avg_basket_size": 10.63,
+      "avg_orders": 53.92,
+      "avg_days_between": 6.51
+    },
+    "17": {
+      "n_users": 2443,
+      "avg_basket_size": 9.38,
+      "avg_orders": 8.72,
+      "avg_days_between": 12.92
+    }
+  },
+  "k_selection_silhouette_scores": {
+    "12": 0.05413373129737107,
+    "15": 0.06916497776177287,
+    "18": 0.07685447822363536,
+    "20": 0.07905764548388361
+  }
+}

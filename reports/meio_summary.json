@@ -1,0 +1,12 @@
+{
+  "service_level_target": 0.95,
+  "z": 1.644853626951472,
+  "store_lead_time_days": 1,
+  "dc_lead_time_days": 3,
+  "n_store_product_pairs": 51989,
+  "n_dc_product_pairs": 3000,
+  "total_safety_stock_units_no_pooling": 190831.64566572633,
+  "total_safety_stock_units_pooled_at_dc": 133325.10270428943,
+  "network_safety_stock_reduction_from_pooling_pct": 30.134699494322483,
+  "target_fill_rate_pct": 95.0
+}
