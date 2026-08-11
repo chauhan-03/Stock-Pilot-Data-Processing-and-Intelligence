@@ -1,7 +1,6 @@
 # ReorderIQ — A Multi-Node Inventory Control Tower on Instacart Data
 
-**Dashboard:** [`dashboard/index.html`](dashboard/index.html) (open directly in a browser) — also published at
-https://claude.ai/code/artifact/856050bb-7063-4cdb-8955-0186c250ebe6
+**Dashboard:** [`dashboard/index.html`](dashboard/index.html) (open directly in a browser)
 
 ## The framing
 
