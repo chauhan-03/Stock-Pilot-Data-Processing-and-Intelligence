@@ -1,9 +1,9 @@
 ===============================================================================
-STOCK-PILOT-DATA-PROCESSING-AND-INTELLIGENCE - A MULTI-NODE INVENTORY CONTROL TOWER ON INSTACART DATA
+REORDERIQ - A MULTI-NODE INVENTORY CONTROL TOWER ON INSTACART DATA
 Complete explanation: concepts, methodology, and end-to-end flow
 ===============================================================================
 
-This document explains the entire Stock-Pilot-Data-Processing-and-Intelligence project in plain language - what
+This document explains the entire ReorderIQ project in plain language - what
 it is, why each piece exists, the concepts behind each layer, and the exact
 order things run in and why. Read top to bottom for the full story, or jump
 to a section using the headers below.
@@ -31,7 +31,7 @@ CONTENTS
 1. WHAT THIS PROJECT IS, IN ONE PARAGRAPH
 ================================================================================
 
-Stock-Pilot-Data-Processing-and-Intelligence is a simulated "inventory control tower" - the kind of system a
+ReorderIQ is a simulated "inventory control tower" - the kind of system a
 grocery chain's operations team would use to answer "which stores are about
 to run short on which products, and what should we do about it" - built on
 top of the real Instacart Market Basket dataset (3.42 million real grocery
@@ -469,24 +469,24 @@ WHAT HAPPENS ONCE SOMETHING IS FLAGGED
 
 This is the exact order the pipeline runs in (see run_pipeline.sh), and what
 each step consumes and produces. Everything reads from and writes to a
-single DuckDB database file at data/processed/stock-pilot.duckdb, so each step
+single DuckDB database file at data/processed/reorderiq.duckdb, so each step
 builds directly on tables the previous step created.
 
-  STEP 1 - Ingest (src/stock-pilot/ingest/build_db.py)
+  STEP 1 - Ingest (src/reorderiq/ingest/build_db.py)
     Reads the six raw CSVs from data/raw/ and loads them into DuckDB as
     typed tables: orders, order_products, products, aisles, departments, and
     a pre-joined fact_order_products table (33.8M rows) that combines all of
     them for fast downstream querying. Indexes are built on the columns
     everything else joins on.
 
-  STEP 2 - Build reorder features (src/stock-pilot/features/build_features.py)
+  STEP 2 - Build reorder features (src/reorderiq/features/build_features.py)
     Computes the 16 user/product/interaction features described in Section
     4, strictly from eval_set='prior' rows only (never touching the held-out
     order), and assembles the final labeled training dataset: 8,474,661
     candidate (user, product) rows across 131,209 users, 9.8% positive.
 
   STEP 3 - Train the reorder model
-    (src/stock-pilot/models/train_reorder_model.py)
+    (src/reorderiq/models/train_reorder_model.py)
     Splits users 90/10, trains the gradient-boosted classifier, tunes the
     probability threshold on the held-out 10% to maximize mean per-order F1,
     and saves the trained model plus a metrics report. Produces:
@@ -494,7 +494,7 @@ builds directly on tables the previous step created.
     reports/reorder_model_metrics.json.
 
   STEP 4 - Cluster synthetic stores
-    (src/stock-pilot/features/build_synthetic_stores.py)
+    (src/reorderiq/features/build_synthetic_stores.py)
     Builds the per-user department-share + cadence profile described in
     Section 5, runs K-means with k=18, validates the clusters with
     Kruskal-Wallis, and writes a user_store_map table (which user belongs to
@@ -502,27 +502,27 @@ builds directly on tables the previous step created.
     reports/store_clustering_validation.json.
 
   STEP 5 - Build the demand hierarchy
-    (src/stock-pilot/features/build_hierarchical_demand.py)
+    (src/reorderiq/features/build_hierarchical_demand.py)
     Reconstructs the relative per-user calendar, buckets into weeks, builds
     the store x product x week demand table for the top 3,000 products, and
     computes the weighted-moving-average next-week forecast per
     (store, product), verifying bottom-up reconciliation holds exactly.
 
-  STEP 6 - Compute MEIO (src/stock-pilot/meio/build_meio.py)
+  STEP 6 - Compute MEIO (src/reorderiq/meio/build_meio.py)
     Reads the forecasts from Step 5, computes store-level safety stock and
     reorder points, computes the pooled department-DC-level safety stock
     across all stores serving each product, and reports the network-wide
     pooling benefit. Produces reports/meio_summary.json.
 
   STEP 7 - Mine association rules
-    (src/stock-pilot/rules/build_association_rules.py)
+    (src/reorderiq/rules/build_association_rules.py)
     Computes the exact full-history pairwise co-occurrence rules (Section 8,
     method 1) and runs the sampled FP-Growth pass (method 2), saving
     complement rules, substitute candidates, and multi-item rules as CSVs in
     reports/.
 
   STEP 8 - Run the control tower
-    (src/stock-pilot/agents/control_tower.py)
+    (src/reorderiq/agents/control_tower.py)
     Scores every candidate (user, product) row from Step 2 with the trained
     model from Step 3, rolls those probabilities up to store-level ML demand,
     compares against the historical baseline from Step 5 (as described in
@@ -531,7 +531,7 @@ builds directly on tables the previous step created.
     reports/control_tower_summary.json.
 
   STEP 9 - Consolidate for the dashboard
-    (src/stock-pilot/dashboard_data.py)
+    (src/reorderiq/dashboard_data.py)
     Pulls every report generated above into a single
     reports/dashboard_data.json file, which the HTML dashboard reads and
     renders as charts and tables.
@@ -548,10 +548,10 @@ data/raw/
   The six original Instacart CSV files, unmodified.
 
 data/processed/
-  stock-pilot.duckdb        - the single database file every step reads/writes
+  reorderiq.duckdb        - the single database file every step reads/writes
   reorder_model.joblib    - the trained, ready-to-use reorder model
 
-src/stock-pilot/
+src/reorderiq/
   ingest/build_db.py                    - Step 1 (see Section 10)
   features/build_features.py            - Step 2
   features/build_synthetic_stores.py    - Step 4
@@ -580,7 +580,7 @@ docs/
 README.md            - project overview and quick reference (markdown)
 requirements.txt      - the exact Python package versions used
 run_pipeline.sh       - runs all nine steps above in order
-Stock-Pilot-Data-Processing-and-Intelligence_Explained.txt - this file
+ReorderIQ_Explained.txt - this file
 
 
 ================================================================================

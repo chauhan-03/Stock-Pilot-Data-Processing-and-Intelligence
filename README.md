@@ -1,4 +1,4 @@
-# Stock-Pilot-Data-Processing-and-Intelligence — A Multi-Node Inventory Control Tower on Instacart Data
+# ReorderIQ — A Multi-Node Inventory Control Tower on Instacart Data
 
 **Dashboard:** [`dashboard/index.html`](dashboard/index.html) (open directly in a browser)
 
@@ -100,8 +100,8 @@ The reorder model achieves F1 = 0.371 (vs. Kaggle's 0.38–0.40 range) with only
 
 ```
 data/raw/               Original Instacart CSVs (orders, order_products__{prior,train}, products, aisles, departments)
-data/processed/         stock-pilot.duckdb (all derived tables), reorder_model.joblib
-src/stock-pilot/
+data/processed/         reorderiq.duckdb (all derived tables), reorder_model.joblib
+src/reorderiq/
   ingest/                build_db.py                    Raw CSVs -> DuckDB
   features/               build_features.py              Reorder-prediction feature store
                           build_synthetic_stores.py      User clustering -> 18 synthetic stores
