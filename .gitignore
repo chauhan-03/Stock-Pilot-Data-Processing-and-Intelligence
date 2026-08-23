@@ -2,7 +2,6 @@
 __pycache__/
 *.pyc
 .DS_Store
-.claude/
 
 # Large raw data — exceeds GitHub's 100MB file limit
 data/raw/orders.csv

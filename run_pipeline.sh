@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the full ReorderIQ pipeline end to end, in dependency order.
+# Runs the full Stock-Pilot-Data-Processing-and-Intelligence pipeline end to end, in dependency order.
 # Usage: ./run_pipeline.sh   (from the project root, with data/raw/*.csv present)
 set -euo pipefail
 cd "$(dirname "$0")"
