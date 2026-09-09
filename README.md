@@ -1,4 +1,4 @@
-# ReorderIQ — Smarter Inventory for Grocery Stores
+# ReorderIQ — Smarter Inventory forcasting for Grocery Stores
 
 **📊 Dashboard:** [`dashboard/index.html`](dashboard/index.html) — open directly in a browser.
 
