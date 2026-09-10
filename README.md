@@ -62,9 +62,9 @@ Every percentage point of waste in a grocery chain adds up to millions of dollar
 
 ## LAYER 2: How It Works (The Technical Details)
 
-### The Five-Layer Architecture
+### The Seven-Layer Architecture
 
-Every decision flows through five stages. Each layer answers a business question, then passes its answer to the next layer.
+Every decision flows through seven stages. Each layer answers a business question, then passes its answer to the next layer.
 
 #### **Layer 1: Demand Sensing — "Who will buy what next week?"**
 
@@ -135,15 +135,59 @@ Bottom-up reconciliation with coherence constraints. The hierarchy is:
 Weekly demand is summed bottom-up. A daily calendar is reconstructed from Instacart's `days_since_prior_order` field (the gap between orders for each customer). This gap is converted to relative weeks via cumulative sum per user.
 
 **The Validation:**  
-- Reconstructed weekly totals checked for continuity (no jumps or dips that contradict lower-level forecasts).
-- Backtested with rolling origins: hold out 4 weeks, forecast the next week using the prior 52 weeks of data, then slide forward.
+- Bottom-up totals must reconcile exactly across every rollup level (SKU, store, department). Asserted in code — the pipeline fails if they diverge by more than 1e-6.
+- Accuracy is *not* validated at this layer. This layer builds and reconciles the hierarchy; held-out forecast accuracy is measured in Layer 4.
 
 **The Code:**  
 `src/reorderiq/features/build_hierarchical_demand.py`
 
 ---
 
-#### **Layer 4: MEIO — "How much safety stock do we really need?"**
+#### **Layer 4: Demand Forecasting — "How much will actually sell, and how sure are we?"**
+
+**The Question:**  
+The hierarchy tells us how to add demand up. It doesn't tell us how much next week's demand *is*. The original answer was a 6-week weighted moving average with hand-picked weights [1,2,3,4,5,6]. Is that right, and how would we know?
+
+**The Problem It Found:**  
+The demand table records only weeks in which something sold — a zero-demand week is a *missing row*, not a zero. Three consequences, all measured:
+
+| Defect | Evidence | Effect |
+|---|---|---|
+| The "6-week window" wasn't 6 weeks | `.tail(6)` takes 6 rows; in 80.4% of series those span >6 weeks (median 11, p90 25) | Stale history weighted as recent |
+| Zero-weeks never entered the average | 82.4% of series have gaps | Estimates demand *given a sale*, over-forecasting by **+68.1%** |
+| Relative time decays by survivorship | 750K units (wk 1) → 57K (wk 52) as fewer users survive | A naive trend term learns the artifact |
+
+**The Technique:**  
+Densify every series onto a contiguous weekly grid with explicit zeros, attach per-(store, week) active-user **exposure**, then benchmark 22 model variants under one rolling-origin protocol — train on weeks ≤ w, forecast w+1, at origins 34/38/42/46:
+
+- **Asserted weights:** naive, mean, the incumbent moving average (kept in both buggy and fixed form, to separate "the fix helped" from "the model helped")
+- **Fitted weights:** SES / Holt / ETS with α estimated per series; ARIMA
+- **Split weights:** Croston / SBA, which smooth demand *size* and *interval* separately — necessary when 40.5% of weeks are zero
+- **Learned weights:** Ridge / Lasso lag regression, where the coefficients β_k *are* the demand weights, estimated rather than asserted
+- **Count models:** Poisson GLM and Poisson GBM with an exposure offset, E[y] = exposure · exp(x'β), so the model learns demand *per active user* — which is stable — instead of demand *per week*, which the survivorship decay makes unstable
+- **Quantile models:** gradient-boosted pinball-loss regression at τ = 80/90/95/99%
+
+**The Result:**  
+The learned weights contradict the hand-picked ones. Ridge puts **40.3%** of total weight on last week against the asserted 28.6%, and lag 6 comes out **negative** where the incumbent gave it a positive 4.8% — recency was under-weighted and the 6-week window was never supported by the data.
+
+| | MAE | RMSE | WAPE | Bias | Fill rate |
+|---|---|---|---|---|---|
+| Incumbent (as shipped) | 1.639 | 2.975 | 0.3826 | +1.113 | 93.9% |
+| Best accuracy (`gbm_poisson`) | **1.111** | 3.317 | **0.2593** | +0.073 | 87.9% |
+| Shipped (`gbm_q80`, service-constrained) | 1.615 | — | 0.3770 | +1.222 | **95.4%** |
+
+**Why the shipped model isn't the most accurate one:**  
+A stockout costs more than a unit of excess stock, and symmetric error metrics can't see that. An unbiased forecast sits below demand roughly half the time — `lasso` at bias −0.000 has a 30% under-rate and 86.5% fill. So selection runs on **pinball loss** and picks the cheapest model that clears a 95% fill floor, not the lowest MAE. The incumbent's +1.113 bias was accidental stockout protection; this replaces it with deliberate, tunable protection.
+
+**The Validation:**  
+Rolling-origin, 4 origins, 15,997 held-out store-weeks per model, all scored on the same 4,000-series volume-stratified sample. MAPE is deliberately absent — it divides by actuals, and 40.5% of weeks are zero.
+
+**The Code:**  
+`src/reorderiq/forecast/` — `panel.py`, `models.py`, `regressors.py`, `backtest.py`, `build_forecast.py`
+
+---
+
+#### **Layer 5: MEIO — "How much safety stock do we really need?"**
 
 **The Question:**  
 We know *expected* demand. But orders are random. How much extra should we hold to cover that randomness without overshooting?
@@ -168,7 +212,7 @@ This assumes demand across stores within a department is independent. In real li
 
 ---
 
-#### **Layer 5: Basket Rules & Substitution — "What do customers buy together, or instead?"**
+#### **Layer 6: Basket Rules & Substitution — "What do customers buy together, or instead?"**
 
 **The Question:**  
 If a product runs out, which product should we suggest instead? And if we're buying from a supplier, which products should we order together?
@@ -197,7 +241,7 @@ Why sample for FP-Growth? One-hot encoding the full 49,688 × 3,420,000 matrix i
 
 ---
 
-#### **Layer 6: Control Tower — "Where should we act?"**
+#### **Layer 7: Control Tower — "Where should we act?"**
 
 **The Question:**  
 The forecast says Store A will order 200 units of bananas next week. Historical data says bananas make up 3% of Store A's produce spend. The ML forecast says only 1.5% of produce spend will be bananas. Should we trust the ML forecast or the history?
@@ -332,6 +376,10 @@ Before trusting any number, know where the data comes from:
 
 - **No real stockout data:** We infer inventory from forecasted demand and safety stock. We cannot measure actual fill rates or stockout frequency against real data.
 
+- **The relative timeline is not a calendar:** Instacart ships no dates, so each user's timeline is rebuilt from `days_since_prior_order` starting at their own day 0. Users share no clock — week 30 is a different real date for every user — so **no seasonality term is identifiable**, and none is fitted. The same construction creates a survivorship artifact: network demand falls from ~750K units in week 1 to 57K in week 52 purely because fewer users have that much history, not because demand declined. The forecasting layer absorbs this with a per-(store, week) active-user exposure offset; a naive trend term would learn the artifact as if it were real.
+
+- **The shipped forecast is deliberately high-sided:** `forecast_units_next_week` is a service-level quantile, not a conditional mean, because a stockout costs more than a unit of holding. The unbiased estimate is retained beside it as `forecast_units_mean`. MEIO then adds safety stock on top, so protection compounds — noted in `reports/forecast_summary.json` and not yet reconciled.
+
 ---
 
 ### How to Use This
@@ -365,13 +413,19 @@ Before trusting any number, know where the data comes from:
 ```
 data/
   raw/                 Original Instacart CSVs
-  processed/           reorderiq.duckdb, reorder_model.joblib
+  processed/           reorderiq.duckdb, reorder_model.joblib, forecast_model.joblib
 
 src/reorderiq/
   ingest/              build_db.py                    Raw CSVs → DuckDB
   features/            build_features.py              Reorder prediction features
                        build_synthetic_stores.py      User clustering → 18 stores
                        build_hierarchical_demand.py   Demand hierarchy + forecast
+  forecast/            panel.py                       Dense weekly panel (explicit zeros + exposure)
+                       models.py                      Per-series methods (MA, SES/Holt/ETS, Croston/SBA, ARIMA)
+                       regressors.py                  Lag regressions (Ridge/Lasso/Poisson) + quantile models
+                       backtest.py                    Rolling-origin benchmark: accuracy + service metrics
+                       build_forecast.py              Fits the selected model, writes the shipped forecast
+                       forecastability.py             Per-SKU accuracy prediction (SBC classes)
   models/              train_reorder_model.py         Reorder model + benchmarking
   meio/                build_meio.py                  Two-echelon safety stock
   rules/               build_association_rules.py     Pairwise + FP-Growth rules
@@ -444,7 +498,11 @@ After the pipeline completes:
 | Two-Echelon Inventory Optimization (MEIO) | How much inventory is needed at each echelon? | Safety stock reduction (30.1%) | `src/reorderiq/meio/build_meio.py` |
 | Market Basket Analysis (pairwise + FP-Growth) | What products are bought together or as substitutes? | 415,479 pairs, 700 substitutes | `src/reorderiq/rules/build_association_rules.py` |
 | Rule-Based Exception Detection | Where does demand diverge from history? | Exception rate (4.87%), resolution rate (79%) | `src/reorderiq/agents/control_tower.py` |
-| Rolling-Origin Backtesting | How does the model perform on truly held-out data? | Model generalization | `src/reorderiq/models/train_reorder_model.py` |
+| Rolling-Origin Backtesting | How does the model perform on truly held-out data? | Model generalization | `src/reorderiq/models/train_reorder_model.py`, `src/reorderiq/forecast/backtest.py` |
+| Exponential Smoothing / ARIMA / Croston-SBA | Do classical time-series methods beat a moving average here? | Forecast benchmark baseline | `src/reorderiq/forecast/models.py` |
+| Regularized Lag Regression (Ridge / Lasso) | How much should each past week actually count? | Learned demand weights vs. asserted ones | `src/reorderiq/forecast/regressors.py` |
+| Poisson Regression with Exposure Offset | How do we model counts when the user base is thinning? | Survivorship-corrected demand rates | `src/reorderiq/forecast/regressors.py` |
+| Quantile Regression (Pinball Loss) | How do we forecast when a stockout costs more than excess stock? | Service-level frontier (80/90/95/99%) | `src/reorderiq/forecast/regressors.py` |
 
 ---
 
