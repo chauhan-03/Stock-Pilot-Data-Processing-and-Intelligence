@@ -170,14 +170,16 @@ Densify every series onto a contiguous weekly grid with explicit zeros, attach p
 **The Result:**  
 The learned weights contradict the hand-picked ones. Ridge puts **40.3%** of total weight on last week against the asserted 28.6%, and lag 6 comes out **negative** where the incumbent gave it a positive 4.8% — recency was under-weighted and the 6-week window was never supported by the data.
 
-| | MAE | RMSE | WAPE | Bias | Fill rate |
-|---|---|---|---|---|---|
-| Incumbent (as shipped) | 1.639 | 2.975 | 0.3826 | +1.113 | 93.9% |
-| Best accuracy (`gbm_poisson`) | **1.111** | 3.317 | **0.2593** | +0.073 | 87.9% |
-| Shipped (`gbm_q80`, service-constrained) | 1.615 | — | 0.3770 | +1.222 | **95.4%** |
+| | MAE | WAPE | Under-rate | Fill rate | Short units | Excess units |
+|---|---|---|---|---|---|---|
+| Incumbent (as shipped) | 1.639 | 0.3826 | 13.4% | 93.9% | 4,211 | 22,010 |
+| Best accuracy (`gbm_poisson`) | **1.111** | **0.2593** | 28.6% | 87.9% | 8,303 | **9,468** |
+| **Shipped** (`gbm_q90`) | 2.237 | 0.5222 | **7.4%** | **97.6%** | **1,632** | 34,157 |
 
-**Why the shipped model isn't the most accurate one:**  
-A stockout costs more than a unit of excess stock, and symmetric error metrics can't see that. An unbiased forecast sits below demand roughly half the time — `lasso` at bias −0.000 has a 30% under-rate and 86.5% fill. So selection runs on **pinball loss** and picks the cheapest model that clears a 95% fill floor, not the lowest MAE. The incumbent's +1.113 bias was accidental stockout protection; this replaces it with deliberate, tunable protection.
+**Why the shipped model is the *least* accurate of the three:**  
+A stockout costs more than a unit of excess stock, and symmetric error metrics cannot see that. An unbiased forecast sits below demand roughly half the time — `lasso` at bias −0.000 has a 30% under-rate and 86.5% fill. So selection minimizes **pinball loss** subject to a 95% fill floor, and the winner deliberately forecasts high: MAE rises from 1.639 to 2.237 while shortfall falls 61% and stockout frequency nearly halves. The 55% rise in excess units is the price of that protection, reported rather than minimized away.
+
+A note on what *not* to select on: minimizing excess subject to the same fill floor picks `gbm_q80`, which clears 95% fill on units while being short **15.1%** of the time — worse than the incumbent. Optimizing cost alone buys the cheapest possible compliance with the constraint.
 
 **The Validation:**  
 Rolling-origin, 4 origins, 15,997 held-out store-weeks per model, all scored on the same 4,000-series volume-stratified sample. MAPE is deliberately absent — it divides by actuals, and 40.5% of weeks are zero.

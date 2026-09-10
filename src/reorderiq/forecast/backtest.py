@@ -282,17 +282,29 @@ def print_table(table: dict, title: str, sort_key: str):
 
 
 def select_model(table: dict, service_level: float = SERVICE_LEVEL):
-    """Cheapest forecast that still meets the service floor.
+    """Lowest asymmetric loss among models that clear the service floor.
 
-    Not "lowest error": under an asymmetric cost the accuracy-optimal forecast is
-    not the operationally acceptable one. Feasibility first -- unit fill rate at
-    or above the target -- then minimum EXCESS units among the survivors, since
-    excess is the cost being paid to buy that service level.
+    An earlier version of this minimized EXCESS units subject to the fill floor.
+    That is the wrong objective and the results table shows why: it selected
+    gbm_q80, which clears 95% fill on UNITS while being short 15.1% of the time --
+    a higher under-rate than the incumbent's 13.4%. Optimizing cost alone walks
+    right up to the constraint and buys the cheapest possible compliance,
+    trading frequent small shortfalls for a good aggregate number.
+
+    Pinball loss at tau is the loss that actually encodes the asymmetry: it
+    charges shortfall tau/(1-tau) times more than excess, so a model cannot buy a
+    better score by being short more often. Minimizing it subject to the fill
+    floor selects gbm_q90 instead -- 97.6% fill at a 7.4% under-rate, roughly
+    half the incumbent's shortfall frequency.
+
+    Excess units remain in the table and are reported for the selected model,
+    because the cost of that protection is a real number the business should see
+    rather than one the selection rule quietly minimized on its behalf.
     """
     feasible = {k: v for k, v in table.items() if v["FILL"] >= service_level}
     if not feasible:
         return None, min(table.items(), key=lambda kv: kv[1]["PINBALL"])[0]
-    return min(feasible.items(), key=lambda kv: kv[1]["EXCESS"])[0], None
+    return min(feasible.items(), key=lambda kv: kv[1]["PINBALL"])[0], None
 
 
 def main():
@@ -339,9 +351,9 @@ def main():
     print(f"  fill rate    {inc['FILL']:.2%}  ->  {best['FILL']:.2%}")
     print(f"  under-rate   {inc['UNDER']:.2%}  ->  {best['UNDER']:.2%}")
     print(f"  short units  {inc['SHORT']:,.0f}  ->  {best['SHORT']:,.0f}   "
-          f"({(1-best['SHORT']/inc['SHORT'])*100:+.1f}%)")
+          f"({(best['SHORT']/inc['SHORT']-1)*100:+.1f}% change)")
     print(f"  excess units {inc['EXCESS']:,.0f}  ->  {best['EXCESS']:,.0f}   "
-          f"({(1-best['EXCESS']/inc['EXCESS'])*100:+.1f}%)")
+          f"({(best['EXCESS']/inc['EXCESS']-1)*100:+.1f}% change  <- the cost of the protection)")
     print(f"  WAPE         {inc['WAPE']:.4f}  ->  {best['WAPE']:.4f}")
     print("=" * 96)
 
@@ -361,7 +373,7 @@ def main():
             "eval_points_per_model": int(table["naive"]["n"]),
             "panel_rows_total": int(len(pan)),
             "service_level_floor": SERVICE_LEVEL,
-            "selection_rule": "min EXCESS units subject to FILL >= service floor",
+            "selection_rule": "min PINBALL loss subject to FILL >= service floor",
             "selected_model": chosen,
             "metrics_note": ("MAPE omitted: 40.5% of panel weeks are zero. "
                              "PINBALL is the asymmetric loss actually optimized."),

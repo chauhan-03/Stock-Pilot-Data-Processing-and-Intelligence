@@ -12,8 +12,8 @@
     "eval_points_per_model": 15997,
     "panel_rows_total": 2639627,
     "service_level_floor": 0.95,
-    "selection_rule": "min EXCESS units subject to FILL >= service floor",
-    "selected_model": "gbm_q80",
+    "selection_rule": "min PINBALL loss subject to FILL >= service floor",
+    "selected_model": "gbm_q90",
     "metrics_note": "MAPE omitted: 40.5% of panel weeks are zero. PINBALL is the asymmetric loss actually optimized."
   },
   "results": {
