@@ -4,7 +4,7 @@
 
 ---
 
-## LAYER 1: The Story (No Jargon)
+## LAYER 1: The Story
 
 ### The Problem: Guessing Wrong About Groceries
 
